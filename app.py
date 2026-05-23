@@ -4,6 +4,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 from threading import Timer
 
+#Laryssa gosch Dev Sênior Top
 app = Flask(__name__)
 usuarios_db = {}
 
