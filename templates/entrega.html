@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght=400;700&display=swap" rel="stylesheet">
+    <title>Acompanhar Entrega</title>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #fdf6f0; padding: 40px; display: flex; justify-content: center; align-items: center; height: 80vh; margin: 0; }
+        .delivery-box { background: white; padding: 40px; border-radius: 20px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; }
+        h1 { color: #8b4513; margin-top: 0; }
+        .status-container { margin: 30px 0; text-align: left; }
+        .status-step { display: flex; align-items: center; margin: 15px 0; padding: 10px; border-radius: 8px; background: #fafafa; font-weight: bold; border-left: 5px solid #ccc; transition: 0.3s; }
+        .status-step.active { background: #fff8f2; border-left-color: #27ae60; color: #27ae60; }
+        .btn-home { background: #8b4513; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; text-decoration: none; display: block; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div class="delivery-box">
+        <h1>🛵 Seu Pedido está a Caminho!</h1>
+        <p style="color: #666;">Acompanhe o status do seu pedido árabe em tempo real:</p>
+        
+        <div class="status-container">
+            <div class="status-step active" id="step-1">✅ 1. Pedido Recebido e Confirmado</div>
+            <div class="status-step" id="step-2">👨‍🍳 2. Sendo preparado na Cozinha</div>
+            <div class="status-step" id="step-3">📦 3. Saiu para entrega com o Motoboy</div>
+            <div class="status-step" id="step-4">🎉 4. Entregue! Bom apetite!</div>
+        </div>
+
+        <p id="tempo-restante" style="font-weight: bold; color: #d2691e; font-size: 18px;">Tempo estimado: Calculando...</p>
+        <button class="btn-home" onclick="window.location.href='/dashboard'">VOLTAR PARA O MENU</button>
+    </div>
+
+    <script>
+        // Simulador de Mudança de Status automática de 5 em 5 segundos
+        let passo = 1;
+        const tempos = ["Estimativa: 35 minutos", "Estimativa: 25 minutos", "Estimativa: 10 minutos", "Seu pedido chegou! 🎉"];
+        
+        document.getElementById('tempo-restante').innerText = tempos[0];
+
+        const intervalo = setInterval(() => {
+            passo++;
+            if(passo <= 4) {
+                const etapaAnterior = document.getElementById(`step-${passo-1}`);
+                const etapaAtual = document.getElementById(`step-${passo}`);
+                
+                etapaAnterior.style.color = "#7f8c8d";
+                etapaAnterior.style.background = "#f1f1f1";
+                
+                etapaAtual.classList.add('active');
+                document.getElementById('tempo-restante').innerText = tempos[passo-1];
+            } else {
+                clearInterval(intervalo);
+            }
+        }, 6000); // Muda o status na tela automaticamente a cada 6 segundos
+    </script>
+</body>
+</html>
