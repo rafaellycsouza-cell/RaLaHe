@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+<style>
+    .section-header-title { font-size: 20px; color: var(--gold-royal); margin-bottom: 25px; border-left: 4px solid var(--gold-royal); padding-left: 15px; text-transform: uppercase; }
+    
+    .hub-10-restaurants { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-bottom: 40px; }
+    .restaurant-premium-box {
+        background: var(--bg-card); border: 1px solid var(--border-glow); padding: 0; border-radius: 20px; transition: var(--premium-transition); overflow: hidden;
+    }
+    .restaurant-premium-box img { width: 100%; height: 140px; object-fit: cover; transition: var(--premium-transition); }
+    .restaurant-premium-box:hover img { transform: scale(1.05); }
+    .restaurant-info-padding { padding: 18px; }
+    .restaurant-premium-box:hover, .restaurant-premium-box.selected {
+        border-color: var(--gold-royal); background: var(--wine-deep); transform: translateY(-4px); box-shadow: 0 15px 30px var(--gold-glow);
+    }
+    .restaurant-premium-box h4 { font-size: 16px; color: var(--text-pure); font-weight: 700; margin-bottom: 5px; }
+    .restaurant-premium-box p { font-size: 12px; color: var(--text-muted); }
+
+    .menu-split-view { display: grid; grid-template-columns: 2.4fr 1fr; gap: 40px; align-items: start; }
+    .products-premium-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    
+    .dish-card { background: var(--bg-card); border-radius: 22px; overflow: hidden; border: 1px solid var(--border-glow); display: flex; flex-direction: column; justify-content: space-between; transition: var(--premium-transition); }
+    .dish-card img { width: 100%; height: 180px; object-fit: cover; }
+    .dish-body { padding: 22px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .dish-body h3 { font-size: 18px; color: var(--text-pure); font-weight: 700; margin-bottom: 8px; }
+    .dish-body p { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; height: 34px; overflow: hidden; }
+    .dish-price { font-size: 20px; font-weight: 800; color: var(--gold-royal); }
+
+    .premium-modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 6000; }
+    .premium-modal-window { background: var(--bg-card); width: 90%; max-width: 520px; border-radius: 24px; border: 1px solid var(--gold-royal); padding: 35px; }
+    .extra-item-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-glow); }
+
+    /* MODAL DE CUPONS EXCLUSIVO */
+    .coupon-popup-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 7000; }
+    .coupon-popup-card { background: #FFFDF9; color: #140C0D; width: 92%; max-width: 440px; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4); animation: popupScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .coupon-popup-header { background: linear-gradient(135deg, #F27405, #E65C00); color: #FFF; text-align: center; padding: 22px; font-weight: 800; font-size: 16px; }
+    .coupon-popup-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; background: #FFF9F2; }
+    
+    .coupon-ticket-row { display: flex; background: #FFFFFF; border: 1.5px dashed #E65C00; border-radius: 12px; overflow: hidden; transition: 0.2s; }
+    .coupon-ticket-row:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230,92,0,0.15); }
+    .coupon-ticket-left { background: #FFF; width: 35%; display: flex; flex-direction: column; justify-content: center; align-items: center; border-right: 1.5px dashed #E65C00; padding: 15px; }
+    .coupon-ticket-left h2 { color: #E65C00; font-size: 26px; font-weight: 900; }
+    .coupon-ticket-left small { font-size: 10px; color: #776E65; font-weight: 600; text-align: center; margin-top: 2px; }
+    .coupon-ticket-right { width: 65%; padding: 15px 20px; display: flex; flex-direction: column; justify-content: center; }
+    .coupon-ticket-right h4 { color: #2B2520; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .coupon-ticket-right p { color: #776E65; font-size: 11px; font-weight: 500; }
+    
+    .coupon-popup-footer { padding: 15px 20px; background: #FFF; text-align: center; }
+    .coupon-btn-close { width: 100%; background: #F5E6D3; color: #734A1F; font-size: 14px; font-weight: 700; padding: 14px; border-radius: 12px; border: none; }
+
+    @keyframes popupScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+    .cart-box-container { background: var(--bg-card); border-radius: 22px; padding: 30px; border: 1px solid var(--border-glow); }
+    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: rgba(255,255,255,0.01); border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border-glow); }
+
+    /* --- INSTANCIAÇÃO DO MAPA --- */
+    .map-outer-container { position: relative; border-radius: 24px; border: 2px solid var(--gold-royal); overflow: hidden; height: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    .map-canvas-wrapper { 
+        background: #DCD6CD; width: 100%; height: 100%; position: relative; 
+        transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), transform-origin 0.5s ease;
+    }
+    .light-mode .map-canvas-wrapper { background: #EFEBE4; }
+    .map-canvas-wrapper.map-zoomed { transform: scale(1.9); }
+
+    .joinville-street { position: absolute; background: #FFF; box-shadow: 0 1px 3px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #777; font-weight: bold; text-transform: uppercase; }
+    .light-mode .joinville-street { background: #E5DFD5; }
+    
+    .map-node-pin { position: absolute; transform: translate(-50%, -50%); font-size: 28px; z-index: 100; transition: var(--premium-transition); }
+    .map-node-label { position: absolute; background: #140C0D; color: #FFF; border: 1px solid var(--gold-royal); padding: 5px 10px; border-radius: 6px; font-size: 9px; font-weight: 800; transform: translate(-50%, -150%); white-space: nowrap; pointer-events: none; z-index: 105; }
+
+    #p-moto { font-size: 36px; z-index: 300; pointer-events: none; }
+    .telemetry-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-glow); font-size: 13px; }
+    .telemetry-value { font-weight: 700; color: var(--gold-royal); }
+
+    #live-toast { position: fixed; bottom: 40px; right: 40px; background: var(--wine-bright); color: white; border: 1px solid var(--gold-royal); padding: 16px 28px; border-radius: 14px; font-weight: 700; z-index: 9999; display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+    <div id="live-toast">Notificação</div>
+
+    <div id="couponOffersPopup" class="coupon-popup-backdrop">
+        <div class="coupon-popup-card">
+            <div class="coupon-popup-header">Use suas ofertas especiais agora!</div>
+            <div class="coupon-popup-body">
+                <div class="coupon-ticket-row" onclick="selecionarLinhaCupom('GERAL10', 0.10, 'Cupom Geral 10% Aplicado!')">
+                    <div class="coupon-ticket-left"><h2>10%<span style="font-size:12px;">OFF</span></h2><small>Sem gasto mín.!</small></div>
+                    <div class="coupon-ticket-right"><h4>Cupom geral</h4><p>Limite de R$5</p><p style="margin-top:4px; font-size:10px; color:#A89E94;">Expira em 1 dia (s)</p></div>
+                </div>
+                <div class="coupon-ticket-row" onclick="selecionarLinhaCupom('GERAL19', 0.19, 'Cupom Geral 19% Aplicado!')">
+                    <div class="coupon-ticket-left"><h2>19%<span style="font-size:12px;">OFF</span></h2><small>Pedidos R$29+</small></div>
+                    <div class="coupon-ticket-right"><h4>Cupom geral</h4><p>Limite de R$8,26</p><p style="margin-top:4px; font-size:10px; color:#A89E94;">Expira em 1 dia (s)</p></div>
+                </div>
+                <div class="coupon-ticket-row" onclick="selecionarLinhaCupom('VIP20', 0.20, 'Cupom Especial 20% Aplicado!')">
+                    <div class="coupon-ticket-left"><h2>20%<span style="font-size:12px;">OFF</span></h2><small>Oferta Especial</small></div>
+                    <div class="coupon-ticket-right"><h4>Cupom geral</h4><p>Limite de R$11,70</p><p style="margin-top:4px; font-size:10px; color:#A89E94;">Expira em 1 dia (s)</p></div>
+                </div>
+            </div>
+            <div class="coupon-popup-footer"><button class="coupon-btn-close" onclick="fecharPopupCupons()">Entendi</button></div>
+        </div>
+    </div>
+
+    <div id="screen-home" class="screen active">
+        <h3 class="section-header-title">7 Cozinhas Árabes Premium - Joinville</h3>
+        <div class="hub-10-restaurants" id="hub-restaurantes-list"></div>
+
+        <div class="menu-split-view">
+            <div>
+                <h3 class="section-header-title" id="current-restaurant-title">Selecione uma cozinha acima</h3>
+                <div class="products-premium-grid" id="products-target-grid"></div>
+            </div>
+            
+            <div class="cart-box-container" style="position: sticky; top: 130px;">
+                <h3 style="color:var(--gold-royal); font-size:15px; margin-bottom:12px; text-transform:uppercase;">Minha Sacola</h3>
+                <div id="side-cart-preview" style="color:var(--text-muted); font-size:13px; text-align:center; padding:15px 0;">Nenhum item selecionado.</div>
+                <button class="btn-luxury" style="padding:12px; margin-top:10px; display:none; font-size:11px;" id="side-cart-btn" onclick="switchScreen('cart')">Revisar e Fechar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="extraIngredientsModal" class="premium-modal-backdrop">
+        <div class="premium-modal-window">
+            <h3 class="font-luxury" id="m-dish-name" style="color:var(--gold-royal); margin-bottom:5px;">Prato</h3>
+            <div style="margin-bottom:20px;" id="extras-container-checkboxes"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; background:rgba(0,0,0,0.1); padding:14px; border-radius:12px;">
+                <span style="font-size:14px; font-weight:600;">Subtotal do Item:</span>
+                <span id="m-dish-total-price" style="font-size:20px; font-weight:800; color:var(--gold-royal);">R$ 0,00</span>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn-luxury" onclick="confirmarAdicaoSacola()">Adicionar à Sacola</button>
+                <button class="btn-luxury" style="background:#E74C3C; color:white;" onclick="fecharModalExtras()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-cart" class="screen">
+        <h2 class="section-header-title">Sua Sacola Gourmet</h2>
+        <div class="menu-split-view">
+            <div class="cart-box-container" id="full-cart-items-wrapper"></div>
+            
+            <div class="cart-box-container">
+                <h3 style="color:var(--gold-royal); margin-bottom:20px; text-transform:uppercase; font-size:16px;">Sumário de Valores</h3>
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label>Cupons Disponíveis</label>
+                    <button class="btn-luxury" style="background: linear-gradient(135deg, #F27405, #E65C00); color: white; font-size: 11px; padding: 12px;" onclick="abrirPopupCupons()">Ver Ofertas Especiais</button>
+                    <small id="coupon-message" style="display:block; margin-top:10px; font-weight:700; font-size:12px; color: var(--success);"></small>
+                </div>
+                <div class="telemetry-row"><span>Preço dos Pratos</span><span id="c-subtotal" class="telemetry-value">R$ 0,00</span></div>
+                <div class="telemetry-row"><span>Descontos</span><span id="c-discount" style="color:var(--success); font-weight:700;">R$ 0,00</span></div>
+                <div class="telemetry-row"><span>Taxa de Logística</span><span style="color:var(--success); font-weight:700;">Grátis</span></div>
+                <div style="display:flex; justify-content:space-between; margin:25px 0 20px 0; font-size:20px; font-weight:900;"><span>Total Líquido</span><span id="c-total" style="color:var(--gold-royal);">R$ 0,00</span></div>
+                <button class="btn-luxury" id="c-submit-btn" disabled onclick="enviarFluxoPedido()">Confirmar e Despachar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-status" class="screen">
+        <h2 class="section-header-title">Monitoramento GPS Dinâmico</h2>
+        <div class="menu-split-view">
+            <div class="cart-box-container" id="tracking-info-panel">
+                <div style="background:var(--wine-deep); padding:20px; border-radius:14px; margin-bottom:20px;">
+                    <h4 style="font-size:14px; color:var(--gold-royal);">Aguardando envio...</h4>
+                </div>
+            </div>
+
+            <div class="map-outer-container">
+                <div class="map-canvas-wrapper" id="joinville-map-viewport">
+                    <div class="joinville-street" style="top:15%; left:0; width:100%; height:24px;">Rua Dr. João Colin</div>
+                    <div class="joinville-street" style="top:42%; left:0; width:100%; height:24px;">Rua Blumenau</div>
+                    <div class="joinville-street" style="top:75%; left:0; width:100%; height:24px;">Avenida JK</div>
+                    <div class="joinville-street" style="top:0; left:20%; width:24px; height:100%; flex-direction:column;">Rua Otto Boehm</div>
+                    <div class="joinville-street" style="top:0; left:55%; width:24px; height:100%; flex-direction:column;">Avenida Beira Rio</div>
+                    
+                    <div id="p-shop" class="map-node-pin">🏪</div>
+                    <div id="l-shop" class="map-node-label">Restaurante</div>
+                    <div id="p-user" class="map-node-pin">🏠</div>
+                    <div id="l-user" class="map-node-label">Destino</div>
+                    <div id="p-moto" class="map-node-pin" style="display:none;">🛵</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-profile" class="screen">
+        <h2 class="section-header-title">Configurações Básicas</h2>
+        <div class="cart-box-container" style="max-width:600px;">
+            <div class="input-group"><label>Nome de Usuário</label><input type="text" id="p-nome" disabled style="opacity:0.6;"></div>
+            <div class="input-group"><label>E-mail Cadastrado</label><input type="email" id="p-email" onchange="atualizarDadoEficaz('email', this.value)"></div>
+            <div class="input-group"><label>Contato Celular</label><input type="text" id="p-fone" onchange="atualizarDadoEficaz('fone', this.value)"></div>
+            <div class="input-group"><label>Rua e Número</label><input type="text" id="p-rua" onchange="atualizarDadoEficaz('rua', this.value)"></div>
+            <div class="input-group">
+                <label>Bairro Geográfico</label>
+                <select id="p-bairro" onchange="atualizarDadoEficaz('bairro', this.value)">
+                    <option value="centro">Centro</option>
+                    <option value="america">América</option>
+                    <option value="gloria">Glória</option>
+                    <option value="saguacu">Saguaçu</option>
+                    <option value="anita garibaldi">Anita Garibaldi</option>
+                    <option value="costa e silva">Costa e Silva</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO EXPANDIDA: 7 RESTAURANTES COM EXATAMENTE 5 OPÇÕES CADA
+        const lista7Restaurantes = [
+            { id: 1, nome: "Abu Dhabi Premium", bairro: "Centro", rua: "Rua Dr. João Colin, 450", x: 25, y: 15, img: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Shawarma de Frango Tradicional", preco: 34.90, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop&q=80", desc: "Frango grelhado, creme de alho Toum e picles artesanal.", extras: [{n: "Alho Toum Extra", p: 4.50}] },
+                { nome: "Homus Clássico com Grão", preco: 22.00, img: "https://images.unsplash.com/photo-1547058886-af3a3af52358?w=600&auto=format&fit=crop&q=80", desc: "Pasta de grão-de-bico premium com azeite de oliva e pão sírio.", extras: [{n: "Pão Sírio Adicional", p: 3.00}] },
+                { nome: "Tabule Fresco da Casa", preco: 19.50, img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80", desc: "Salsinha picada, hortelã, tomate, cebola e trigo burgol.", extras: [{n: "Azeite Extra", p: 2.00}] },
+                { nome: "Kafta de Carne na Brasa", preco: 28.00, img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80", desc: "Espeto de carne bovina moída perfeitamente temperada.", extras: [{n: "Molho de Hortelã", p: 3.50}] },
+                { nome: "Arroz Majadra com Lentilhas", preco: 26.00, img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop&q=80", desc: "Arroz com lentilhas e cebolas caramelizadas crocantes.", extras: [{n: "Cebola Crispy Extra", p: 4.00}] }
+            ]},
+            { id: 2, nome: "Al-Sultan Palace", bairro: "América", rua: "Rua Otto Boehm, 120", x: 45, y: 15, img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Kebab Mignon Especial", preco: 49.00, img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80", desc: "Filet Mignon em cubos grelhado com homus e vegetais.", extras: [{n: "Hortelã Fresca", p: 2.00}] },
+                { nome: "Babaganoush Defumado", preco: 24.00, img: "https://images.unsplash.com/photo-1547058886-af3a3af52358?w=600&auto=format&fit=crop&q=80", desc: "Pasta de berinjela grelhada na chama direta com tahine.", extras: [{n: "Nozes Picadas", p: 5.00}] },
+                { nome: "Quibe Cru de Carne Real", preco: 39.90, img: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop&q=80", desc: "Carne bovina extra magra com trigo, hortelã e cebola.", extras: [{n: "Cebola Roxa", p: 1.50}] },
+                { nome: "Charuto de Couve Recheado", preco: 32.00, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80", desc: "Folhas de couve cozidas recheadas com carne e arroz.", extras: [{n: "Molho de Limão", p: 2.50}] },
+                { nome: "Esfiha Aberta de Queijo", preco: 9.00, img: "https://images.unsplash.com/photo-1601924582970-9238b4e7d034?w=600&auto=format&fit=crop&q=80", desc: "Massa leve recheada com blend de queijos árabes.", extras: [{n: "Zatar Salpicado", p: 1.00}] }
+            ]},
+            { id: 3, nome: "Emirates Shawarma", bairro: "Glória", rua: "Rua Max Colin, 800", x: 15, y: 35, img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Shawarma de Cordeiro Defumado", preco: 42.00, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop&q=80", desc: "Cordeiro desfiado nas brasas com especiarias finas.", extras: [{n: "Molho de Romã", p: 5.50}] },
+                { nome: "Batata Harra Picante", preco: 18.00, img: "https://images.unsplash.com/photo-1518013041231-e46e414a58e8?w=600&auto=format&fit=crop&0=80", desc: "Cubos de batata fritos salteados com alho e pimenta.", extras: [{n: "Maionese de Alho", p: 3.00}] },
+                { nome: "Salada Fatouche Crocante", preco: 21.00, img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80", desc: "Mix de folhas com rabanete e pedaços de pão sírio frito.", extras: [{n: "Sumagre Extra", p: 2.00}] },
+                { nome: "Arroz Marroquino Aromático", preco: 35.00, img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop&q=80", desc: "Arroz com carne, castanhas tostadas e especiarias.", extras: [{n: "Amêndoas Extras", p: 6.50}] },
+                { nome: "Esfiha Fechada de Carne", preco: 8.50, img: "https://images.unsplash.com/photo-1601924582970-9238b4e7d034?w=600&auto=format&fit=crop&q=80", desc: "Tradicional esfiha de carne perfeitamente assada no forno a lenha.", extras: [{n: "Limão em Gomos", p: 0.50}] }
+            ]},
+            { id: 4, nome: "Damascus Gastronomia", bairro: "Saguaçu", rua: "Av. Rolf Colin, 310", x: 65, y: 35, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Falafel Crocante Plate", preco: 29.90, img: "https://images.unsplash.com/photo-1547058886-af3a3af52358?w=600&auto=format&fit=crop&q=80", desc: "6 bolinhos de grão-de-bico com tabule e molho tahine.", extras: [{n: "Falafel Extra", p: 3.00}] },
+                { nome: "Coalhada Seca Artesanal", preco: 19.00, img: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=600&auto=format&fit=crop&q=80", desc: "Coalhada consistente temperada com azeite e hortelã.", extras: [{n: "Pão Árabe Integral", p: 3.50}] },
+                { nome: "Michuí de Frango Grelhado", preco: 36.00, img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80", desc: "Espeto de cubos de peito de frango marinados no limão.", extras: [{n: "Molho de Alho Toum", p: 4.00}] },
+                { nome: "Charuto de Repolho Nobre", preco: 31.00, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80", desc: "Folhas de repolho recheadas com carne e tempero sírio.", extras: [{n: "Molho de Tomate", p: 2.00}] },
+                { nome: "Esfiha de Zatar Autêntica", preco: 9.50, img: "https://images.unsplash.com/photo-1601924582970-9238b4e7d034?w=600&auto=format&fit=crop&q=80", desc: "Massa coberta com tomilho árabe, gergelim e azeite.", extras: [{n: "Queijo Adicional", p: 3.00}] }
+            ]},
+            { id: 5, nome: "Marrakesh Express", bairro: "Anita Garibaldi", rua: "Rua Anita Garibaldi, 990", x: 35, y: 70, img: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Kibe Frito de Elite", preco: 18.00, img: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop&q=80", desc: "Massa artesanal recheada com carne moída e castanhas.", extras: [{n: "Coalhada Seca Casa", p: 4.00}] },
+                { nome: "Cuscuz Marroquino de Cordeiro", preco: 52.00, img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop&q=80", desc: "Sêmola hidratada com legumes cozidos e ragu de cordeiro.", extras: [{n: "Grão-de-bico Extra", p: 3.00}] },
+                { nome: "Tajine de Frango com Olivas", preco: 44.00, img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80", desc: "Chicken cozido lentamente na panela de barro com limão confitado.", extras: [{n: "Azeitonas Verdes", p: 2.50}] },
+                { nome: "Sopa Harira Tradicional", preco: 24.00, img: "https://images.unsplash.com/photo-1547058886-af3a3af52358?w=600&auto=format&fit=crop&q=80", desc: "Sopa marroquina rica em lentilhas, grão-de-bico e tomate.", extras: [{n: "Torradas Sírias", p: 2.00}] },
+                { nome: "Kibe Assado de Bandeja", preco: 27.00, img: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop&q=80", desc: "Kibe assado recheado com carne e castanhas douradas.", extras: [{n: "Azeite de Oliva", p: 1.50}] }
+            ]},
+            { id: 6, nome: "Beirute Lounge", bairro: "Costa e Silva", rua: "Rua Otto Pfuetzenreuter, 200", x: 80, y: 25, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Arroz Marroquino Festivo", preco: 38.00, img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop&q=80", desc: "Arroz soltinho com carne, amêndoas e uvas passas.", extras: [{n: "Amêndoas Extras", p: 6.00}] },
+                { nome: "Sanduíche Beirute de Filet", preco: 41.50, img: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600&auto=format&fit=crop&q=80", desc: "Pão sírio gigante, filet mignon, queijo, alface e tomate.", extras: [{n: "Ovo Frito Adicional", p: 3.00}] },
+                { nome: "Quibe Frito Recheado com Catupiry", preco: 19.50, img: "https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop&q=80", desc: "Crocância perfeita com recheio ultra cremoso.", extras: [{n: "Gomos de Limão", p: 0.50}] },
+                { nome: "Arroz com Carne e Castanhas", preco: 36.00, img: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=600&auto=format&fit=crop&q=80", desc: "Combinação clássica perfumada com pimenta síria.", extras: [{n: "Castanhas de Caju", p: 5.00}] },
+                { nome: "Esfiha de Carne com Coalhada", preco: 11.00, img: "https://images.unsplash.com/photo-1601924582970-9238b4e7d034?w=600&auto=format&fit=crop&q=80", desc: "Esfiha coberta com carne moída temperada e coalhada fresca.", extras: [{n: "Hortelã Salpicada", p: 1.00}] }
+            ]},
+            { id: 7, nome: "Petra Doceria Árabe", bairro: "Centro", rua: "Rua Visconde de Taunay, 300", x: 50, y: 60, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", itens: [
+                { nome: "Baklava de Pistache Real", preco: 22.00, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", desc: "Massa folhada crocante com calda de flor de laranjeira.", extras: [{n: "Pistache Picado Extra", p: 8.00}] },
+                { nome: "Halawi de Gergelim Fino", preco: 16.00, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", desc: "Doce tradicional de gergelim com textura que derrete na boca.", extras: [{n: "Calda de Mel", p: 2.00}] },
+                { nome: "Ninho de Nozes Caramelizadas", preco: 19.00, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", desc: "Massa em fios dourados perfeitamente recheada com nozes.", extras: [{n: "Nozes Trituradas", p: 4.00}] },
+                { nome: "Malabie com Calda de Damasco", preco: 18.50, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", desc: "Manjar árabe perfumado com água de rosas e damascos.", extras: [{n: "Calda Adicional", p: 3.00}] },
+                { nome: "Ataif de Nata Frito", preco: 21.00, img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80", desc: "Minipanqueca frita recheada com creme de nata e pistache.", extras: [{n: "Pistache Extra", p: 5.00}] }
+            ]}
+        ];
+
+        const coordsBairrosDestino = {
+            "centro": { x: 20, y: 75 }, "america": { x: 55, y: 15 }, "gloria": { x: 20, y: 42 },
+            "saguacu": { x: 55, y: 42 }, "anita garibaldi": { x: 55, y: 75 }, "costa e silva": { x: 82, y: 42 }
+        };
+
+        let restIdAtivo = null;
+        let sacolaGlobal = [];
+        let pratoSendoEditado = {};
+        let descontoAcumulado = 0;
+        let activeAnimationInterval = null;
+
+        function inicializarAppLimpo() {
+            restIdAtivo = null;
+            sacolaGlobal = [];
+            descontoAcumulado = 0;
+            document.getElementById('products-target-grid').innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">
+                    <p>Selecione uma das 7 cozinhas árabes para renderizar o cardápio.</p>
+                </div>
+            `;
+            recalcularSacolaInteira();
+            renderizarHubRestaurantes();
+            
+            const b = clienteObjeto.bairro.toLowerCase();
+            const coord = coordsBairrosDestino[b] || coordsBairrosDestino['centro'];
+            atualizarMarcadorPosicao('user', coord.x, coord.y, "ENTREGA: " + b.toUpperCase());
+        }
+
+        function renderizarHubRestaurantes() {
+            const container = document.getElementById('hub-restaurantes-list');
+            container.innerHTML = lista7Restaurantes.map(r => `
+                <div class="restaurant-premium-box ${r.id === restIdAtivo ? 'selected' : ''}" id="rb-${r.id}" onclick="selecionarRestauranteId(${r.id})">
+                    <img src="${r.img}">
+                    <div class="restaurant-info-padding">
+                        <h4>${r.nome}</h4>
+                        <p>📍 ${r.rua}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selecionarRestauranteId(id) {
+            restIdAtivo = id;
+            document.querySelectorAll('.restaurant-premium-box').forEach(b => b.classList.remove('selected'));
+            document.getElementById('rb-' + id)?.classList.add('selected');
+            
+            const rObj = lista7Restaurantes.find(item => item.id === id);
+            document.getElementById('current-restaurant-title').innerText = "Menu: " + rObj.nome;
+            
+            atualizarMarcadorPosicao('shop', rObj.x, rObj.y, rObj.nome);
+            renderizarProdutosDoRestaurante(rObj);
+        }
+
+        function renderizarProdutosDoRestaurante(restaurante) {
+            const grid = document.getElementById('products-target-grid');
+            grid.innerHTML = restaurante.itens.map(p => `
+                <div class="dish-card">
+                    <img src="${p.img}">
+                    <div class="dish-body">
+                        <div><h3>${p.nome}</h3><p>${p.desc}</p></div>
+                        <div style="display:flex; align-items:center; margin-top:15px;">
+                            <span class="dish-price">R$ ${p.preco.toFixed(2)}</span>
+                            <button class="btn-luxury" style="padding:10px 18px; width:auto; font-size:11px; margin-left:auto;" onclick="abrirModalExtras('${p.nome}', ${p.preco}, ${restaurante.id})">Configurar</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirModalExtras(nome, preco, restId) {
+            const rObj = lista7Restaurantes.find(r => r.id === restId);
+            const pratoOriginal = rObj.itens.find(i => i.nome === nome);
+
+            pratoSendoEditado = { nome: nome, precoBase: preco, total: preco, adicionais: [] };
+            document.getElementById('m-dish-name').innerText = nome;
+            document.getElementById('m-dish-total-price').innerText = "R$ " + preco.toFixed(2);
+
+            document.getElementById('extras-container-checkboxes').innerHTML = pratoOriginal.extras.map(ex => `
+                <div class="extra-item-row">
+                    <label><input type="checkbox" class="extra-cb" value="${ex.p}" data-nome="${ex.n}" onchange="recalcularSomaModal()"> ${ex.n}</label>
+                    <span style="color:var(--gold-royal);">+ R$ ${ex.p.toFixed(2)}</span>
+                </div>
+            `).join('');
+            document.getElementById('extraIngredientsModal').style.display = 'flex';
+        }
+
+        function recalcularSomaModal() {
+            let sub = pratoSendoEditado.precoBase;
+            let list = [];
+            document.querySelectorAll('.extra-cb:checked').forEach(cb => {
+                sub += parseFloat(cb.value);
+                list.push(cb.getAttribute('data-nome'));
+            });
+            pratoSendoEditado.total = sub;
+            pratoSendoEditado.adicionais = list;
+            document.getElementById('m-dish-total-price').innerText = "R$ " + sub.toFixed(2);
+        }
+
+        function fecharModalExtras() { document.getElementById('extraIngredientsModal').style.display = 'none'; }
+
+        function confirmarAdicaoSacola() {
+            sacolaGlobal.push({ nome: pratoSendoEditado.nome, preco: pratoSendoEditado.total, detalhes: pratoSendoEditado.adicionais.length > 0 ? "Com: " + pratoSendoEditado.adicionais.join(', ') : "Original" });
+            fecharModalExtras();
+            recalcularSacolaInteira();
+            lancarToastNotificacao("Item adicionado à sacola!");
+        }
+
+        function abrirPopupCupons() { document.getElementById('couponOffersPopup').style.display = 'flex'; }
+        function fecharPopupCupons() { document.getElementById('couponOffersPopup').style.display = 'none'; }
+        
+        function selecionarLinhaCupom(codigo, taxa, mensagem) {
+            descontoAcumulado = taxa;
+            document.getElementById('coupon-message').innerText = mensagem;
+            recalcularSacolaInteira();
+            fecharPopupCupons();
+        }
+
+        function recalcularSacolaInteira() {
+            document.getElementById('global-cart-count').innerText = sacolaGlobal.length;
+            document.getElementById('side-cart-preview').innerText = sacolaGlobal.length === 0 ? "Nenhum item adicionado." : sacolaGlobal.length + " item(s) na sacola";
+            document.getElementById('side-cart-btn').style.display = sacolaGlobal.length === 0 ? "none" : "block";
+
+            const wrapper = document.getElementById('full-cart-items-wrapper');
+            if(sacolaGlobal.length === 0) {
+                wrapper.innerHTML = `<p style="color:var(--text-muted); text-align:center; padding:30px;">Sua sacola de compras está vazia.</p>`;
+                document.getElementById('c-subtotal').innerText = "R$ 0,00";
+                document.getElementById('c-discount').innerText = "R$ 0,00";
+                document.getElementById('c-total').innerText = "R$ 0,00";
+                document.getElementById('c-submit-btn').disabled = true;
+            } else {
+                let sub = 0;
+                wrapper.innerHTML = sacolaGlobal.map((item, i) => {
+                    sub += item.preco;
+                    return `<div class="cart-item-row"><div><strong>${item.nome}</strong><br><small style="color:var(--gold-royal);">${item.detalhes}</small></div><div style="display:flex; align-items:center; gap:20px;"><span>R$ ${item.preco.toFixed(2)}</span><span onclick="removerItemSacola(${i})" style="color:#E74C3C; cursor:pointer; font-weight:800; font-size:12px;">Remover</span></div></div>`;
+                }).join('');
+                
+                let valDesc = sub * descontoAcumulado;
+                document.getElementById('c-subtotal').innerText = "R$ " + sub.toFixed(2);
+                document.getElementById('c-discount').innerText = "- R$ " + valDesc.toFixed(2);
+                document.getElementById('c-total').innerText = "R$ " + (sub - valDesc).toFixed(2);
+                document.getElementById('c-submit-btn').disabled = false;
+            }
+        }
+
+        function removerItemSacola(i) { sacolaGlobal.splice(i, 1); recalcularSacolaInteira(); }
+
+        function atualizarDadoEficaz(campo, valor) {
+            clienteObjeto[campo] = valor;
+            sincronizarCamposPerfil();
+            if(campo === 'bairro') {
+                const c = coordsBairrosDestino[valor.toLowerCase()] || coordsBairrosDestino['centro'];
+                atualizarMarcadorPosicao('user', c.x, c.y, "DESTINO: " + valor.toUpperCase());
+            }
+        }
+
+        function atualizarMarcadorPosicao(id, x, y, label) {
+            document.getElementById('p-' + id).style.left = x + "%"; document.getElementById('p-' + id).style.top = y + "%";
+            document.getElementById('l-' + id).style.left = x + "%"; document.getElementById('l-' + id).style.top = y + "%";
+            document.getElementById('l-' + id).innerText = label;
+        }
+
+        function lancarToastNotificacao(m) {
+            const t = document.getElementById('live-toast'); t.innerText = m; t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 2500);
+        }
+
+        /* --- LOGÍSTICA DO SEGUNDO PEDIDO COM RESET AUTOMÁTICO COMPLETO --- */
+        function enviarFluxoPedido() {
+            if (activeAnimationInterval) clearInterval(activeAnimationInterval);
+
+            const rAtivo = lista7Restaurantes.find(r => r.id === (restIdAtivo || 1));
+            const destinoBairro = clienteObjeto.bairro.toLowerCase() || "centro";
+            const dAtivo = coordsBairrosDestino[destinoBairro] || coordsBairrosDestino['centro'];
+
+            // Painel limpo de telemetria
+            document.getElementById('tracking-info-panel').innerHTML = `
+                <div style="background:var(--wine-deep); padding:15px; border-radius:12px; margin-bottom:20px;">
+                    <h4 style="font-size:14px; color:var(--gold-royal);" id="track-id-lbl">Transmissão em Tempo Real Iniciada...</h4>
+                </div>
+                <div style="margin-bottom:25px; background: rgba(255,255,255,0.01); padding:15px; border-radius:10px;">
+                    <div class="telemetry-row"><span>Status GPS</span><span class="telemetry-value" style="color:var(--success);">● Ativo</span></div>
+                    <div class="telemetry-row"><span>Cozinha Origem</span><span class="telemetry-value">${rAtivo.nome}</span></div>
+                    <div class="telemetry-row"><span>Endereço Entrega</span><span class="telemetry-value">${clienteObjeto.rua}, ${destinoBairro.toUpperCase()}</span></div>
+                    <div class="telemetry-row"><span>Distância GPS</span><span class="telemetry-value" id="tel-distancia">Calculando...</span></div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:16px; font-size:13px;">
+                    <div id="st-1" style="color:var(--text-muted); font-weight:600;">○ 1. Cozinha finalizando preparo</div>
+                    <div id="st-2" style="color:var(--text-muted); font-weight:600;">○ 2. Moto retirando o pedido no restaurante</div>
+                    <div id="st-3" style="color:var(--text-muted); font-weight:600;">○ 3. Em trânsito para o seu endereço</div>
+                    <div id="st-4" style="color:var(--text-muted); font-weight:600;">○ 4. Pedido entregue!</div>
+                </div>
+            `;
+
+            switchScreen('status');
+
+            const viewport = document.getElementById('joinville-map-viewport');
+            const moto = document.getElementById('p-moto');
+            
+            // CORREÇÃO CRUCIAL: Remove zoom pré-existente e teleporta a moto de volta para o restaurante selecionado
+            viewport.classList.remove('map-zoomed');
+            moto.style.transition = "none"; 
+            moto.style.left = rAtivo.x + "%";
+            moto.style.top = rAtivo.y + "%";
+            moto.style.display = "block";
+
+            moto.offsetHeight; // Força re-render do navegador para processar a mudança de coordenadas
+
+            const s1 = document.getElementById('st-1');
+            const s2 = document.getElementById('st-2');
+            const s3 = document.getElementById('st-3');
+            const s4 = document.getElementById('st-4');
+
+            s1.style.color = "var(--gold-royal)";
+            document.getElementById('tel-distancia').innerText = "Preparando...";
+
+            let etapa = 1;
+            let progressoRota = 0;
+
+            activeAnimationInterval = setInterval(() => {
+                progressoRota += 5;
+
+                if (etapa === 1 && progressoRota >= 15) {
+                    s1.style.color = "var(--success)";
+                    s2.style.color = "var(--gold-royal)";
+                    viewport.style.transformOrigin = `${rAtivo.x}% ${rAtivo.y}%`;
+                    viewport.classList.add('map-zoomed');
+                    document.getElementById('tel-distancia').innerText = "Moto no restaurante...";
+                    etapa = 2;
+                } 
+                else if (etapa === 2 && progressoRota >= 35) {
+                    s2.style.color = "var(--success)";
+                    s3.style.color = "var(--gold-royal)";
+                    
+                    // Executa a trajetória fluida até as coordenadas de destino
+                    moto.style.transition = "left 3s cubic-bezier(0.4, 0, 0.2, 1), top 3s cubic-bezier(0.4, 0, 0.2, 1)";
+                    moto.style.left = dAtivo.x + "%";
+                    moto.style.top = dAtivo.y + "%";
+
+                    viewport.style.transformOrigin = `${dAtivo.x}% ${dAtivo.y}%`;
+                    document.getElementById('tel-distancia').innerText = "Em trânsito pelas avenidas...";
+                    etapa = 3;
+                }
+                else if (etapa === 3 && progressoRota >= 90) {
+                    s3.style.color = "var(--success)";
+                    s4.style.color = "var(--success)";
+                    document.getElementById('tel-distancia').innerText = "0m - Chegou!";
+                    lancarToastNotificacao("Pedido entregue com sucesso!");
+                    
+                    clearInterval(activeAnimationInterval);
+                    
+                    // AJUSTE: Aguarda 4 segundos e reseta a tela para a Home, limpando o estado da moto
+                    setTimeout(() => {
+                        viewport.classList.remove('map-zoomed');
+                        moto.style.display = "none";
+                        switchScreen('home');
+                    }, 4000);
+                }
+            }, 250);
+
+            // Limpa dados locais da sacola antiga
+            sacolaGlobal = [];
+            descontoAcumulado = 0;
+            recalcularSacolaInteira();
+            document.getElementById('coupon-message').innerText = "";
+        }
+    </script>
+{% endblock %}

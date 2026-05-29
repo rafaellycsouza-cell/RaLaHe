@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Sabor Arábico - Rastreando Entrega</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #1a1108; color: #f4ecd8; font-family: 'Segoe UI', sans-serif; }
+        .decoracao-topo {
+            width: 100%; height: 120px;
+            background: linear-gradient(180deg, #5c3e21 0%, rgba(26,17,8,0) 100%);
+            position: relative; border-bottom: 2px dashed #d4a373; margin-bottom: 20px;
+        }
+        .decoracao-topo::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 150px; height: 100px;
+            background: radial-gradient(circle at 0% 0%, transparent 70px, #5c3e21 71px);
+        }
+        .decoracao-topo::after {
+            content: ""; position: absolute; top: 0; right: 0; width: 150px; height: 100px;
+            background: radial-gradient(circle at 100% 0%, transparent 70px, #5c3e21 71px);
+        }
+        .card-status { background-color: #26190e; border: 2px solid #8b5a2b; border-radius: 15px; max-width: 800px; margin: 0 auto; }
+        #map-status { height: 450px; width: 100%; border-radius: 8px; border: 1px solid #8b5a2b; }
+        .texto-alerta { font-weight: bold; color: #e6a15c; font-size: 1.15rem; transition: 0.3s; }
+        .footer-mesquitas { text-align: center; margin-top: 40px; padding-bottom: 20px; }
+        .footer-mesquitas img { width: 100%; max-width: 650px; height: auto; opacity: 0.7; filter: brightness(0.9) sepia(1) hue-rotate(320deg) saturate(2); }
+    </style>
+</head>
+<body>
+
+<div class="decoracao-topo">
+    <div class="text-center color: #e6a15c; pt-2">🌙 ✨ 🕌 ✨ 🌙</div>
+</div>
+
+<div class="container">
+    <div class="card card-status p-4 shadow">
+        <h3 class="text-center fw-bold style-color: #e6a15c;" style="color: #e6a15c;">Acompanhe Seu Shawarma em Tempo Real</h3>
+        <p class="text-center text-muted">Destino Escolhido: <span class="text-white">{{ endereco.texto }}</span></p>
+        
+        <div id="painel-gps" class="texto-alerta text-center mb-3">Localizando veículo de entrega na garagem...</div>
+        <div id="map-status"></div>
+    </div>
+
+    <div class="footer-mesquitas">
+        <img src="/static/images/silhueta_mesquitas.png" alt="Sabor Arábico Silhueta">
+    </div>
+</div>
+
+<script>
+    let map, markerMoto;
+    
+    // Coordenadas geográficas da loja base "Abu Dhabi Premium"
+    const localRestaurante = { lat: -23.5430, lng: -46.6400 };
+    const localDestino = { lat: parseFloat("{{ endereco.lat }}"), lng: parseFloat("{{ endereco.lng }}") };
+
+    function initStatusMap() {
+        const directionsService = new google.maps.DirectionsService();
+
+        map = new google.maps.Map(document.getElementById("map-status"), {
+            center: localRestaurante,
+            zoom: 15,
+            disableDefaultUI: true
+        });
+
+        // Marcador do Cliente
+        new google.maps.Marker({
+            position: localDestino,
+            map: map,
+            title: "Sua Casa"
+        });
+
+        // Marcador da Moto
+        markerMoto = new google.maps.Marker({
+            position: localRestaurante,
+            map: map,
+            title: "Entregador Sabor Arábico",
+            icon: {
+                url: "https://maps.google.com/mapfiles/ms/icons/motorcycle.png"
+            }
+        });
+
+        // Solicita as rotas oficiais baseadas nas ruas do Google Maps
+        directionsService.route({
+            origin: localRestaurante,
+            destination: localDestino,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+            if (status === "OK") {
+                const renderizador = new google.maps.DirectionsRenderer({
+                    map: map,
+                    suppressMarkers: true
+                });
+                renderizador.setDirections(response);
+
+                const vetorRuas = response.routes[0].overview_path;
+                setTimeout(() => {
+                    animarTrajetoRuas(vetorRuas, 0);
+                }, 1500);
+            }
+        });
+    }
+
+    function animarTrajetoRuas(pontos, index) {
+        if (index >= pontos.length) {
+            document.getElementById("painel-gps").innerText = "🎉 Pedido Entregue! Bom apetite!";
+            document.getElementById("painel-gps").style.color = "#28a745";
+            return;
+        }
+
+        // Faz o pino se mover estritamente seguindo o desenho das ruas
+        markerMoto.setPosition(pontos[index]);
+        map.panTo(pontos[index]);
+
+        let tempoEspera = 250; // Tempo padrão por ponto de rua
+
+        // LOGICA DO SINAL: A cada 8 interseções, simula um semáforo urbano fechado
+        if (index % 8 === 0 && index > 0 && index < pontos.length - 1) {
+            tempoEspera = 4000; // Segura parado por 4 segundos
+            document.getElementById("painel-gps").innerText = "🚥 O motoboy parou em um sinal fechado. Aguarde...";
+            document.getElementById("painel-gps").style.color = "#dc3545";
+        } else {
+            document.getElementById("painel-gps").innerText = "🛵 Entregador em movimento pelas ruas da cidade...";
+            document.getElementById("painel-gps").style.color = "#e6a15c";
+        }
+
+        setTimeout(() => {
+            animarTrajetoRuas(pontos, index + 1);
+        }, tempoEspera);
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_API_AQUI&callback=initStatusMap" async defer></script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RaLaHe - Alta Gastronomia Árabe</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-master: #090505;
+            --bg-card: #140C0D;
+            --wine-bright: #5C1D24;
+            --wine-deep: #1F070A;
+            --gold-royal: #DFBA53;
+            --gold-glow: rgba(223, 186, 83, 0.25);
+            --text-pure: #FFFDF9;
+            --text-muted: #A39696;
+            --border-glow: rgba(255, 255, 255, 0.04);
+            --success: #27AE60;
+            --premium-transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .light-mode {
+            --bg-master: #FBF9F4;
+            --bg-card: #FFFFFF;
+            --wine-bright: #52151D;
+            --wine-deep: #F4EFE6;
+            --gold-royal: #916F19;
+            --gold-glow: rgba(145, 111, 25, 0.15);
+            --text-pure: #1A1112;
+            --text-muted: #6E6061;
+            --border-glow: rgba(0, 0, 0, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* --- ESTILIZAÇÃO DO CURSOR CUSTOMIZADO --- */
+        html, body {
+            cursor: none !important; /* Oculta o cursor nativo do sistema */
+        }
+        button, a, input, select, .restaurant-premium-box, .dish-card, .sidebar-item, .logo-box, .coupon-ticket-row, [onclick] {
+            cursor: none !important; /* Garante que elementos interativos também ocultem o nativo */
+        }
+
+        #custom-cursor {
+            width: 24px;
+            height: 24px;
+            position: fixed;
+            pointer-events: none;
+            z-index: 99999;
+            transform: translate(-2px, -2px);
+            transition: width 0.2s, height 0.2s, transform 0.2s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23DFBA53'%3E%3Cpath d='M4.5 2.25a.75.75 0 0 0-1.22.582v16.5a.75.75 0 0 0 1.293.517l4.634-4.633h6.543a.75.75 0 0 0 .53-1.28L4.5 2.25z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        /* Mudança de estado quando passa sobre algo clicável */
+        #custom-cursor.clickable {
+            width: 28px;
+            height: 28px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23DFBA53' stroke='%23000' stroke-width='0.5'%3E%3Cpath d='M7.5 2v10.5a.5.5 0 0 1-1 0V4.5a.5.5 0 0 0-1 0V14c0 3.866 3.134 7 7 7s7-3.134 7-7V9.5a.5.5 0 0 0-1 0V14a.5.5 0 0 1-1 0V7.5a.5.5 0 0 0-1 0V14a.5.5 0 0 1-1 0V6.5a.5.5 0 0 0-1 0V14a.5.5 0 0 1-1 0V2a.5.5 0 0 0-1 0z'/%3E%3C/svg%3E");
+        }
+
+        /* Efeito de expansão de onda no clique */
+        .click-pulse {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--gold-royal);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99998;
+            transform: translate(-50%, -50%);
+            animation: pulse-out 0.4s ease-out forwards;
+        }
+
+        @keyframes pulse-out {
+            0% { width: 10px; height: 10px; opacity: 1; }
+            100% { width: 50px; height: 50px; opacity: 0; }
+        }
+
+        body { background-color: var(--bg-master); color: var(--text-pure); transition: var(--premium-transition); overflow-x: hidden; }
+        h1, h2, h3, h4, .font-luxury { font-family: 'Cinzel', serif; letter-spacing: 1.5px; }
+
+        /* --- PAINEL DE AUTENTICAÇÃO --- */
+        #auth-container {
+            display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5000; background: #050303; transition: var(--premium-transition);
+        }
+        .auth-left {
+            width: 45%; background: linear-gradient(135deg, var(--wine-bright) 0%, #080203 100%); padding: 60px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid rgba(223, 186, 83, 0.15);
+        }
+        .auth-left h2 { font-size: 70px; color: var(--gold-royal); text-shadow: 0 0 35px var(--gold-glow); }
+        .auth-left p { color: #FFFDF9; font-size: 16px; margin-top: 15px; font-weight: 300; line-height: 1.6; max-width: 400px; opacity: 0.8; }
+        
+        .auth-right { width: 55%; background: #0A0707; padding: 40px 60px; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
+        .auth-card { width: 100%; max-width: 500px; background: #140C0D; padding: 40px; border-radius: 28px; border: 1px solid var(--border-glow); box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        
+        .auth-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--border-glow); padding-bottom: 10px; }
+        .auth-tab-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; font-weight: 700; padding: 5px 10px; transition: var(--premium-transition); text-transform: uppercase; }
+        .auth-tab-btn.active { color: var(--gold-royal); border-bottom: 2px solid var(--gold-royal); }
+
+        .auth-form-view { display: none; }
+        .auth-form-view.active { display: block; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 10px; font-weight: 800; color: var(--gold-royal); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1.5px; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glow); border-radius: 12px; color: var(--text-pure); font-size: 14px; outline: none; transition: var(--premium-transition);
+        }
+        .light-mode .input-group input, .light-mode .input-group select { background: #EFE9DE; color: #1A1112; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--gold-royal); box-shadow: 0 0 15px var(--gold-glow); background: rgba(255,255,255,0.05); }
+        
+        .btn-luxury {
+            width: 100%; background: linear-gradient(135deg, var(--gold-royal) 0%, #C9A43B 100%); color: #050303; border: none; padding: 16px; border-radius: 12px; font-size: 13px; font-weight: 800; transition: var(--premium-transition); letter-spacing: 1px; text-transform: uppercase;
+        }
+        .btn-luxury:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--gold-glow); }
+
+        /* --- ECOSSISTEMA PRINCIPAL --- */
+        #app-layout { opacity: 0; display: none; transition: var(--premium-transition); }
+        #app-layout.visible { opacity: 1; display: block; }
+
+        header {
+            background: var(--bg-card); border-bottom: 1px solid var(--border-glow); padding: 18px 6%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 2000; transition: var(--premium-transition); backdrop-filter: blur(10px);
+        }
+        .logo-box { display: flex; align-items: center; gap: 14px; }
+        .logo-box h1 { font-size: 34px; color: var(--gold-royal); text-shadow: 0 0 20px var(--gold-glow); }
+        
+        .nav-btn { background: rgba(255,255,255,0.02); border: 1px solid var(--border-glow); color: var(--text-pure); padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 700; transition: var(--premium-transition); }
+        .nav-btn:hover { border-color: var(--gold-royal); background: var(--gold-glow); transform: translateY(-1px); }
+
+        #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3900; display: none; }
+        #laryssaSidebar {
+            position: fixed; top: 0; right: -450px; width: 400px; height: 100vh; background: var(--bg-card); border-left: 1px solid var(--border-glow); box-shadow: -20px 0 50px rgba(0,0,0,0.5); z-index: 4000; transition: var(--premium-transition); padding: 45px; display: flex; flex-direction: column;
+        }
+        #laryssaSidebar.open { right: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .sidebar-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 14px; color: var(--text-pure); font-weight: 600; transition: var(--premium-transition); margin-bottom: 8px; }
+        .sidebar-item:hover { background: var(--gold-glow); color: var(--gold-royal); transform: translateX(-5px); }
+
+        .container { max-width: 1440px; margin: 40px auto; padding: 0 40px; }
+        .screen { display: none; animation: smoothFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .screen.active { display: block; }
+
+        @keyframes smoothFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <div id="custom-cursor"></div>
+
+    <div id="auth-container">
+        <div class="auth-left">
+            <h2>RaLaHe</h2>
+            <p>Faça login ou registre sua conta para mapear suas rotas e saborear a verdadeira gastronomia árabe.</p>
+        </div>
+        <div class="auth-right">
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab-btn active" id="tab-register-btn" onclick="switchAuthTab('register')">Criar Conta</button>
+                    <button class="auth-tab-btn" id="tab-login-btn" onclick="switchAuthTab('login')">Já tenho Conta</button>
+                </div>
+
+                <div id="form-register" class="auth-form-view active">
+                    <div class="input-group">
+                        <label>Nome de Usuário (Para Login)</label>
+                        <input type="text" id="auth-nome" placeholder="Ex: Laryssa">
+                    </div>
+                    <div class="input-group">
+                        <label>Senha de Segurança</label>
+                        <input type="password" id="auth-senha" placeholder="Crie uma senha estável">
+                    </div>
+                    <div class="input-group">
+                        <label>E-mail Pessoal</label>
+                        <input type="email" id="auth-email" placeholder="nome@exemplo.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Telefone / WhatsApp</label>
+                        <input type="text" id="auth-fone" placeholder="(47) 99999-9999">
+                    </div>
+                    <div class="input-group">
+                        <label>Endereço / Logradouro</label>
+                        <input type="text" id="auth-rua" placeholder="Rua, Número, Bloco">
+                    </div>
+                    <div class="input-group">
+                        <label>Bairro de Joinville</label>
+                        <select id="auth-bairro">
+                            <option value="" disabled selected>Selecione a região...</option>
+                            <option value="centro">Centro</option>
+                            <option value="america">América</option>
+                            <option value="gloria">Glória</option>
+                            <option value="saguacu">Saguaçu</option>
+                            <option value="anita garibaldi">Anita Garibaldi</option>
+                            <option value="costa e silva">Costa e Silva</option>
+                        </select>
+                    </div>
+                    <button class="btn-luxury" onclick="registrarNovaConta()">Finalizar Cadastro</button>
+                </div>
+
+                <div id="form-login" class="auth-form-view">
+                    <div class="input-group">
+                        <label>Nome de Usuário</label>
+                        <input type="text" id="login-nome" placeholder="Digite seu nome cadastrado">
+                    </div>
+                    <div class="input-group">
+                        <label>Senha</label>
+                        <input type="password" id="login-senha" placeholder="Digite sua senha">
+                    </div>
+                    <button class="btn-luxury" onclick="autenticarUsuarioExistente()">Entrar no Ecossistema</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        <div id="sidebarOverlay" onclick="toggleMenu(false)"></div>
+        <div id="laryssaSidebar">
+            <div class="sidebar-header">
+                <h3 id="menu-welcome-title" style="color:var(--gold-royal);">Bem-vindo</h3>
+                <span style="font-size:24px; color:var(--text-muted);" onclick="toggleMenu(false)">✕</span>
+            </div>
+            <div style="flex-grow:1;">
+                <div class="sidebar-item" onclick="switchScreen('home'); toggleMenu(false);"><span>🏠</span> Espaço Gourmet</div>
+                <div class="sidebar-item" onclick="switchScreen('cart'); toggleMenu(false);"><span>🛒</span> Sacola de Pedidos</div>
+                <div class="sidebar-item" onclick="switchScreen('status'); toggleMenu(false);"><span>🛵</span> Monitoramento GPS</div>
+                <div class="sidebar-item" onclick="switchScreen('profile'); toggleMenu(false);"><span>👤</span> Meu Perfil</div>
+            </div>
+            <div class="sidebar-item" onclick="desconectarApp()" style="color:#E74C3C; margin-top: auto; font-weight: bold;"><span>🚪</span> Fazer Logout</div>
+        </div>
+
+        <header>
+            <div class="logo-box" onclick="switchScreen('home')">
+                <span style="font-size:28px;">🏰</span>
+                <h1>RaLaHe</h1>
+            </div>
+            <div style="display:flex; gap:14px; align-items:center;">
+                <button class="nav-btn" onclick="toggleTemaCompleto()" style="padding: 10px 16px;">🌓</button>
+                <button class="nav-btn" onclick="switchScreen('cart')">🛒 Sacola (<span id="global-cart-count">0</span>)</button>
+                <button class="nav-btn" onclick="toggleMenu(true)" style="border-color:var(--gold-royal); color:var(--gold-royal);">Painel ☰</button>
+            </div>
+        </header>
+
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        let clienteObjeto = { nome: "", email: "", fone: "", rua: "", bairro: "" };
+
+        // LÓGICA DO CURSOR DINÂMICO E ANIMAÇÃO DE PULSO
+        const cursorEl = document.getElementById('custom-cursor');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursorEl.style.left = e.clientX + 'px';
+            cursorEl.style.top = e.clientY + 'px';
+
+            // Verifica se o alvo sob o cursor possui comportamento clicável
+            const target = e.target;
+            const isClickable = target.closest('button') || target.closest('a') || 
+                                target.closest('input') || target.closest('select') || 
+                                target.closest('.restaurant-premium-box') || target.closest('.dish-card') || 
+                                target.closest('.sidebar-item') || target.closest('.logo-box') || 
+                                target.closest('.coupon-ticket-row') || target.hasAttribute('onclick');
+            
+            if (isClickable) {
+                cursorEl.classList.add('clickable');
+            } else {
+                cursorEl.classList.remove('clickable');
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const pulse = document.createElement('div');
+            pulse.classList.add('click-pulse');
+            pulse.style.left = e.clientX + 'px';
+            pulse.style.top = e.clientY + 'px';
+            document.body.appendChild(pulse);
+            
+            setTimeout(() => {
+                pulse.remove();
+            }, 400);
+        });
+
+        function switchAuthTab(target) {
+            document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.auth-form-view').forEach(f => f.classList.remove('active'));
+            
+            if(target === 'register') {
+                document.getElementById('tab-register-btn').classList.add('active');
+                document.getElementById('form-register').classList.add('active');
+            } else {
+                document.getElementById('tab-login-btn').classList.add('active');
+                document.getElementById('form-login').classList.add('active');
+            }
+        }
+
+        function registrarNovaConta() {
+            const nome = document.getElementById('auth-nome').value.trim();
+            const senha = document.getElementById('auth-senha').value.trim();
+            const email = document.getElementById('auth-email').value.trim();
+            const fone = document.getElementById('auth-fone').value.trim();
+            const rua = document.getElementById('auth-rua').value.trim();
+            const bairro = document.getElementById('auth-bairro').value;
+
+            if(!nome || !senha || !email || !fone || !rua || !bairro) {
+                alert("Por favor, preencha todos os campos vazios.");
+                return;
+            }
+
+            const contaDb = { nome, senha, email, fone, rua, bairro };
+            localStorage.setItem('user_' + nome.toLowerCase(), JSON.stringify(contaDb));
+
+            clienteObjeto = { nome, email, fone, rua, bairro };
+            entrarNoLayout();
+        }
+
+        function autenticarUsuarioExistente() {
+            const nomeInput = document.getElementById('login-nome').value.trim().toLowerCase();
+            const senhaInput = document.getElementById('login-senha').value.trim();
+
+            if(!nomeInput || !senhaInput) {
+                alert("Preencha o nome e a senha cadastrados para entrar.");
+                return;
+            }
+
+            const registroSalvo = localStorage.getItem('user_' + nomeInput);
+            if(!registroSalvo) {
+                alert("Usuário não localizado. Verifique os dados ou crie uma conta.");
+                return;
+            }
+
+            const dadosConta = JSON.parse(registroSalvo);
+            if(dadosConta.senha !== senhaInput) {
+                alert("Senha incorreta. Tente novamente.");
+                return;
+            }
+
+            clienteObjeto = { 
+                nome: dadosConta.nome, 
+                email: dadosConta.email, 
+                fone: dadosConta.fone, 
+                rua: dadosConta.rua, 
+                bairro: dadosConta.bairro 
+            };
+            entrarNoLayout();
+        }
+
+        function entrarNoLayout() {
+            const authContainer = document.getElementById('auth-container');
+            const appLayout = document.getElementById('app-layout');
+            
+            authContainer.style.opacity = '0';
+            setTimeout(() => {
+                authContainer.style.display = 'none';
+                appLayout.style.display = 'block';
+                setTimeout(() => { 
+                    appLayout.classList.add('visible'); 
+                    if (typeof inicializarAppLimpo === "function") {
+                        inicializarAppLimpo();
+                    }
+                }, 50);
+            }, 500);
+
+            sincronizarCamposPerfil();
+        }
+
+        function desconectarApp() { window.location.reload(); }
+        function toggleMenu(abrir) {
+            document.getElementById('laryssaSidebar').classList.toggle('open', abrir);
+            document.getElementById('sidebarOverlay').style.display = abrir ? 'block' : 'none';
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById('screen-' + id);
+            if(target) target.classList.add('active');
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        function toggleTemaCompleto() { document.body.classList.toggle('light-mode'); }
+
+        function sincronizarCamposPerfil() {
+            document.getElementById('menu-welcome-title').innerText = "Olá, " + clienteObjeto.nome;
+            if(document.getElementById('p-nome')) {
+                document.getElementById('p-nome').value = clienteObjeto.nome;
+                document.getElementById('p-email').value = clienteObjeto.email;
+                document.getElementById('p-fone').value = clienteObjeto.fone;
+                document.getElementById('p-rua').value = clienteObjeto.rua;
+                document.getElementById('p-bairro').value = clienteObjeto.bairro.toLowerCase();
+            }
+        }
+    </script>
+</body>
+</html>
