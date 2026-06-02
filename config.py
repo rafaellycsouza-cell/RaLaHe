@@ -5,4 +5,4 @@ class Config:
     DB_HOST = 'localhost'
     DB_USER = 'root'
     DB_PASSWORD = ''  # Deixe vazio se usar XAMPP, ou coloque sua senha do MySQL
-    DB_NAME = 'ralahe_db'
+    DB_NAME = 'delivery_arabe'
