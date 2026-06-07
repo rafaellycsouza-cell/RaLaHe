@@ -1,133 +1,123 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Sabor Arábico - Rastreando Entrega</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        body { background-color: #1a1108; color: #f4ecd8; font-family: 'Segoe UI', sans-serif; }
-        .decoracao-topo {
-            width: 100%; height: 120px;
-            background: linear-gradient(180deg, #5c3e21 0%, rgba(26,17,8,0) 100%);
-            position: relative; border-bottom: 2px dashed #d4a373; margin-bottom: 20px;
-        }
-        .decoracao-topo::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 150px; height: 100px;
-            background: radial-gradient(circle at 0% 0%, transparent 70px, #5c3e21 71px);
-        }
-        .decoracao-topo::after {
-            content: ""; position: absolute; top: 0; right: 0; width: 150px; height: 100px;
-            background: radial-gradient(circle at 100% 0%, transparent 70px, #5c3e21 71px);
-        }
-        .card-status { background-color: #26190e; border: 2px solid #8b5a2b; border-radius: 15px; max-width: 800px; margin: 0 auto; }
-        #map-status { height: 450px; width: 100%; border-radius: 8px; border: 1px solid #8b5a2b; }
-        .texto-alerta { font-weight: bold; color: #e6a15c; font-size: 1.15rem; transition: 0.3s; }
-        .footer-mesquitas { text-align: center; margin-top: 40px; padding-bottom: 20px; }
-        .footer-mesquitas img { width: 100%; max-width: 650px; height: auto; opacity: 0.7; filter: brightness(0.9) sepia(1) hue-rotate(320deg) saturate(2); }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<div class="decoracao-topo">
-    <div class="text-center color: #e6a15c; pt-2">🌙 ✨ 🕌 ✨ 🌙</div>
-</div>
+{% block styles %}
+<style>
+    /* TELA DE MONITORAMENTO DO STATUS ORIGINAL PREMIUM */
+    .status-panel {
+        max-width: 650px; margin: 40px auto; background: var(--bg-card);
+        padding: 40px; border-radius: 24px; border: 1px solid var(--border-glow); text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4); backdrop-filter: blur(12px);
+    }
+    .status-tracker-text { font-family: 'Cinzel', serif; color: var(--gold-royal); font-size: 28px; margin-bottom: 8px; }
+    .status-bairro-banner { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 40px; letter-spacing: 0.5px; }
+    
+    /* Linha Temporal de Progresso Elegante */
+    .timeline-container { display: flex; justify-content: space-between; align-items: center; position: relative; margin: 50px 20px; }
+    .timeline-line-bg { position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: rgba(223,186,83,0.08); transform: translateY(-50%); z-index: 1; border-radius: 2px; }
+    .timeline-line-progress { position: absolute; top: 50%; left: 0; width: 0%; height: 4px; background: linear-gradient(90deg, var(--gold-royal), #C9A43B); transform: translateY(-50%); z-index: 2; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--gold-glow); }
+    
+    .step-node { position: relative; z-index: 3; width: 50px; height: 50px; background: #090505; border: 2px solid var(--border-glow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    /* Estilização Ativa com Pulsação e Bounce Magnético */
+    .step-node.active { border-color: var(--gold-royal); background: var(--wine-deep); transform: scale(1.15); box-shadow: 0 0 20px var(--gold-glow); }
+    .step-node.active span { display: inline-block; animation: icon-bounce 1.2s infinite ease-in-out; }
+    
+    .step-node .node-info { position: absolute; top: 58px; width: 100px; font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; transition: color 0.4s; }
+    .step-node.active .node-info { color: var(--gold-royal); text-shadow: 0 0 8px rgba(223,186,83,0.3); }
 
-<div class="container">
-    <div class="card card-status p-4 shadow">
-        <h3 class="text-center fw-bold style-color: #e6a15c;" style="color: #e6a15c;">Acompanhe Seu Shawarma em Tempo Real</h3>
-        <p class="text-center text-muted">Destino Escolhido: <span class="text-white">{{ endereco.texto }}</span></p>
+    #txt-status-mensagem-dinamica {
+        font-weight: 500; min-height: 24px; font-size: 14px; margin-top: 35px; color: var(--text-pure);
+        padding: 12px 24px; background: rgba(255,255,255,0.02); border-radius: 12px; display: inline-block; transition: all 0.3s ease;
+    }
+
+    @keyframes icon-bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="screen-status" class="screen">
+    <div class="status-panel">
+        <h3 class="status-tracker-text">Acompanhamento Imperial</h3>
+        <p class="status-bairro-banner" id="status-texto-bairro-rota">Sincronizando com a central de rotas...</p>
         
-        <div id="painel-gps" class="texto-alerta text-center mb-3">Localizando veículo de entrega na garagem...</div>
-        <div id="map-status"></div>
-    </div>
+        <div class="timeline-container">
+            <div class="timeline-line-bg"></div>
+            <div class="timeline-line-progress" id="fluid-bar-status"></div>
+            
+            <div class="step-node active" id="stg-1">
+                <span>🍳</span>
+                <div class="node-info">Preparando</div>
+            </div>
+            <div class="step-node" id="stg-2">
+                <span>🛵</span>
+                <div class="node-info">Em Rota</div>
+            </div>
+            <div class="step-node" id="stg-3">
+                <span>🏡</span>
+                <div class="node-info">Entregue</div>
+            </div>
+        </div>
 
-    <div class="footer-mesquitas">
-        <img src="/static/images/silhueta_mesquitas.png" alt="Sabor Arábico Silhueta">
+        <div id="txt-status-mensagem-dinamica">Carregando andamento do pedido...</div>
     </div>
 </div>
 
 <script>
-    let map, markerMoto;
-    
-    // Coordenadas geográficas da loja base "Abu Dhabi Premium"
-    const localRestaurante = { lat: -23.5430, lng: -46.6400 };
-    const localDestino = { lat: parseFloat("{{ endereco.lat }}"), lng: parseFloat("{{ endereco.lng }}") };
+    function sincronizarTextoBairroStatus() {
+        const labelBairro = document.getElementById("status-texto-bairro-rota");
+        if(!labelBairro) return;
 
-    function initStatusMap() {
-        const directionsService = new google.maps.DirectionsService();
-
-        map = new google.maps.Map(document.getElementById("map-status"), {
-            center: localRestaurante,
-            zoom: 15,
-            disableDefaultUI: true
-        });
-
-        // Marcador do Cliente
-        new google.maps.Marker({
-            position: localDestino,
-            map: map,
-            title: "Sua Casa"
-        });
-
-        // Marcador da Moto
-        markerMoto = new google.maps.Marker({
-            position: localRestaurante,
-            map: map,
-            title: "Entregador Sabor Arábico",
-            icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/motorcycle.png"
-            }
-        });
-
-        // Solicita as rotas oficiais baseadas nas ruas do Google Maps
-        directionsService.route({
-            origin: localRestaurante,
-            destination: localDestino,
-            travelMode: google.maps.TravelMode.DRIVING
-        }, (response, status) => {
-            if (status === "OK") {
-                const renderizador = new google.maps.DirectionsRenderer({
-                    map: map,
-                    suppressMarkers: true
-                });
-                renderizador.setDirections(response);
-
-                const vetorRuas = response.routes[0].overview_path;
-                setTimeout(() => {
-                    animarTrajetoRuas(vetorRuas, 0);
-                }, 1500);
-            }
-        });
-    }
-
-    function animarTrajetoRuas(pontos, index) {
-        if (index >= pontos.length) {
-            document.getElementById("painel-gps").innerText = "🎉 Pedido Entregue! Bom apetite!";
-            document.getElementById("painel-gps").style.color = "#28a745";
-            return;
+        let bairroDestino = localStorage.getItem('sultan_bairro_salvo');
+        
+        if (!bairroDestino && window.clienteObjeto) {
+            bairroDestino = window.clienteObjeto.bairro;
         }
 
-        // Faz o pino se mover estritamente seguindo o desenho das ruas
-        markerMoto.setPosition(pontos[index]);
-        map.panTo(pontos[index]);
-
-        let tempoEspera = 250; // Tempo padrão por ponto de rua
-
-        // LOGICA DO SINAL: A cada 8 interseções, simula um semáforo urbano fechado
-        if (index % 8 === 0 && index > 0 && index < pontos.length - 1) {
-            tempoEspera = 4000; // Segura parado por 4 segundos
-            document.getElementById("painel-gps").innerText = "🚥 O motoboy parou em um sinal fechado. Aguarde...";
-            document.getElementById("painel-gps").style.color = "#dc3545";
+        if (bairroDestino && bairroDestino !== "") {
+            labelBairro.innerText = "Rota Imperial Ativa: Destino ao Bairro " + bairroDestino.toUpperCase() + " — Joinville/SC";
         } else {
-            document.getElementById("painel-gps").innerText = "🛵 Entregador em movimento pelas ruas da cidade...";
-            document.getElementById("painel-gps").style.color = "#e6a15c";
+            labelBairro.innerText = "Rota Imperial Inativa: Defina e salve seu bairro no menu lateral.";
         }
-
-        setTimeout(() => {
-            animarTrajetoRuas(pontos, index + 1);
-        }, tempoEspera);
     }
+
+    function executarAnimacaoStatus() {
+        sincronizarTextoBairroStatus();
+
+        const bar = document.getElementById("fluid-bar-status");
+        const msg = document.getElementById("txt-status-mensagem-dinamica");
+        const n1 = document.getElementById("stg-1");
+        const n2 = document.getElementById("stg-2");
+        const n3 = document.getElementById("stg-3");
+
+        let ticks = 0;
+        if(window.statusIntervalEngine) clearInterval(window.statusIntervalEngine);
+
+        window.statusIntervalEngine = setInterval(() => {
+            ticks += 1;
+            if(ticks > 100) ticks = 100;
+
+            bar.style.width = ticks + "%";
+
+            if(ticks < 45) {
+                msg.innerHTML = "👨‍🍳 <span style='color:var(--gold-royal)'>O Palácio Culinário</span> está preparando e embalando suas iguarias...";
+                n1.classList.add("active"); n2.classList.remove("active"); n3.classList.remove("active");
+            } else if(ticks >= 45 && ticks < 90) {
+                msg.innerHTML = "🛵 A <span style='color:var(--gold-royal)'>Caravana de Entregas</span> iniciou o deslocamento rumo ao seu endereço!";
+                n1.classList.remove("active"); n2.classList.add("active"); n3.classList.remove("active");
+            } else if(ticks >= 90 && ticks < 100) {
+                msg.innerHTML = "✨ O entregador entrou na sua rua! Prepare-se para receber.";
+                n1.classList.remove("active"); n2.classList.remove("active"); n3.classList.add("active");
+            } else if(ticks === 100) {
+                msg.innerHTML = "🎉 <span style='color:#27AE60'>Pedido Entregue!</span> Bom apetite e aproveite a experiência.";
+                clearInterval(window.statusIntervalEngine);
+            }
+        }, 300); 
+    }
+
+    // Inicializa a checagem textual imediata
+    document.addEventListener('DOMContentLoaded', sincronizarTextoBairroStatus);
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=SUA_CHAVE_API_AQUI&callback=initStatusMap" async defer></script>
-</body>
-</html>
+{% endblock %}
