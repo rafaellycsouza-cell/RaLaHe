@@ -456,11 +456,156 @@
             border-color: var(--gold-royal);
             color: var(--gold-royal);
         }
+
+        /* --- BOTÃO MOBILE NO LOGIN --- */
+        #auth-mobile-btn {
+            position: fixed;
+            top: 18px;
+            right: 20px;
+            z-index: 6000;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-glow);
+            color: var(--text-pure);
+            padding: 9px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: var(--premium-transition);
+            cursor: pointer;
+        }
+        #auth-mobile-btn:hover, #auth-mobile-btn.ativo {
+            background: var(--gold-glow);
+            border-color: var(--gold-royal);
+            color: var(--gold-royal);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+
+        /* --- MODO MOBILE NO LOGIN --- */
+        body.mobile-mode #auth-container {
+            background: #0d0d0d;
+            justify-content: center;
+            align-items: center;
+        }
+        body.mobile-mode.light-mode #auth-container {
+            background: #d0c8c0;
+        }
+        body.mobile-mode .auth-left {
+            display: none;
+        }
+        body.mobile-mode .auth-right {
+            width: 480px;
+            max-width: 480px;
+            min-width: 0;
+            height: 100vh;
+            padding: 0;
+            border-radius: 36px;
+            box-shadow: 0 0 0 2px var(--gold-royal), 0 0 80px rgba(0,0,0,0.95);
+            background: #0A0707;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            position: relative;
+        }
+        body.mobile-mode.light-mode .auth-right {
+            background: #faf6f0;
+            box-shadow: 0 0 0 2px var(--gold-royal), 0 0 60px rgba(0,0,0,0.3);
+        }
+
+        /* Banner decorativo árabe */
+        #auth-banner-mobile {
+            display: none;
+            width: 100%;
+            flex-shrink: 0;
+            position: relative;
+            border-radius: 36px 36px 0 0;
+            overflow: hidden;
+            background: linear-gradient(160deg, #3d1a0e 0%, #1F070A 55%, #0d0405 100%);
+            border-bottom: 1px solid rgba(223,186,83,0.25);
+        }
+        body.mobile-mode #auth-banner-mobile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 20px 22px;
+            gap: 6px;
+        }
+        #auth-banner-mobile svg.banner-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #auth-banner-mobile .banner-logo {
+            position: relative;
+            z-index: 2;
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2.5px solid var(--gold-royal);
+            box-shadow: 0 0 24px var(--gold-glow), 0 0 60px rgba(223,186,83,0.15);
+        }
+        #auth-banner-mobile .banner-title {
+            position: relative;
+            z-index: 2;
+            font-family: 'Cinzel', serif;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--gold-royal);
+            text-shadow: 0 0 30px var(--gold-glow);
+            letter-spacing: 3px;
+            margin: 0;
+        }
+        #auth-banner-mobile .banner-sub {
+            position: relative;
+            z-index: 2;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            margin: 0;
+        }
+
+        /* Formulário no mobile */
+        body.mobile-mode .auth-card {
+            padding: 22px 22px 30px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            max-width: 100%;
+            flex: 1;
+        }
+        body.mobile-mode .auth-card .input-group input,
+        body.mobile-mode .auth-card .input-group select {
+            font-size: 16px;
+            padding: 13px 16px;
+        }
+        body.mobile-mode .auth-tabs {
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        body.mobile-mode .auth-tab-btn {
+            font-size: 13px;
+            padding: 6px 14px;
+        }
+        body.mobile-mode .btn-luxury {
+            padding: 14px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
 
     <div id="custom-cursor"></div>
+
+    <!-- Botão toggle mobile - visível em ambas as telas -->
+    <button id="auth-mobile-btn" onclick="toggleModoMobile()" title="Modo Mobile">📱</button>
 
     <div id="toast-notification">
         <span style="font-size: 18px;">✨</span>
@@ -476,6 +621,54 @@
             </div>
         </div>
         <div class="auth-right">
+
+            <!-- Banner decorativo árabe — só aparece no mobile -->
+            <div id="auth-banner-mobile">
+                <!-- SVG decorativo de fundo -->
+                <svg class="banner-svg" viewBox="0 0 480 190" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Arco principal -->
+                    <path d="M100,0 L100,110 Q100,175 240,175 Q380,175 380,110 L380,0 Z" fill="none" stroke="rgba(223,186,83,0.14)" stroke-width="1.5"/>
+                    <!-- Arco interno -->
+                    <path d="M130,0 L130,105 Q130,158 240,158 Q350,158 350,105 L350,0 Z" fill="none" stroke="rgba(223,186,83,0.07)" stroke-width="1"/>
+                    <!-- Ornamento ogiva no topo -->
+                    <path d="M205,0 L205,16 Q222,42 240,46 Q258,42 275,16 L275,0 Z" fill="rgba(223,186,83,0.12)"/>
+                    <!-- Lanterna esquerda -->
+                    <line x1="68" y1="0" x2="68" y2="52" stroke="rgba(223,186,83,0.2)" stroke-width="1"/>
+                    <ellipse cx="68" cy="66" rx="9" ry="16" fill="rgba(223,186,83,0.06)" stroke="rgba(223,186,83,0.25)" stroke-width="1.5"/>
+                    <line x1="68" y1="82" x2="68" y2="92" stroke="rgba(223,186,83,0.12)" stroke-width="1"/>
+                    <!-- Lanterna direita -->
+                    <line x1="412" y1="0" x2="412" y2="52" stroke="rgba(223,186,83,0.2)" stroke-width="1"/>
+                    <ellipse cx="412" cy="66" rx="9" ry="16" fill="rgba(223,186,83,0.06)" stroke="rgba(223,186,83,0.25)" stroke-width="1.5"/>
+                    <line x1="412" y1="82" x2="412" y2="92" stroke="rgba(223,186,83,0.12)" stroke-width="1"/>
+                    <!-- Lanternas menores -->
+                    <line x1="160" y1="0" x2="160" y2="30" stroke="rgba(223,186,83,0.12)" stroke-width="1"/>
+                    <ellipse cx="160" cy="39" rx="6" ry="10" fill="none" stroke="rgba(223,186,83,0.16)" stroke-width="1"/>
+                    <line x1="320" y1="0" x2="320" y2="30" stroke="rgba(223,186,83,0.12)" stroke-width="1"/>
+                    <ellipse cx="320" cy="39" rx="6" ry="10" fill="none" stroke="rgba(223,186,83,0.16)" stroke-width="1"/>
+                    <!-- Estrelas -->
+                    <text x="30" y="35" font-size="13" fill="rgba(223,186,83,0.3)" text-anchor="middle">★</text>
+                    <text x="450" y="35" font-size="13" fill="rgba(223,186,83,0.3)" text-anchor="middle">★</text>
+                    <text x="118" y="72" font-size="9" fill="rgba(223,186,83,0.2)" text-anchor="middle">★</text>
+                    <text x="362" y="72" font-size="9" fill="rgba(223,186,83,0.2)" text-anchor="middle">★</text>
+                    <text x="240" y="22" font-size="9" fill="rgba(223,186,83,0.22)" text-anchor="middle">★</text>
+                    <!-- Luas -->
+                    <text x="34" y="78" font-size="17" fill="rgba(223,186,83,0.16)" text-anchor="middle">🌙</text>
+                    <text x="446" y="78" font-size="15" fill="rgba(223,186,83,0.13)" text-anchor="middle">🌙</text>
+                    <!-- Silhueta mesquitas na base -->
+                    <path d="M0,190 L0,148 L18,148 L18,132 L25,120 Q28,113 31,120 L38,132 L38,148 L56,148 L56,190 Z" fill="rgba(223,186,83,0.1)"/>
+                    <path d="M424,190 L424,148 L442,148 L442,132 L449,120 Q452,113 455,120 L462,132 L462,148 L480,148 L480,190 Z" fill="rgba(223,186,83,0.1)"/>
+                    <path d="M170,190 L170,162 L182,162 L182,150 L188,141 Q191,136 194,141 L200,150 L200,162 L212,162 L212,190 Z" fill="rgba(223,186,83,0.07)"/>
+                    <path d="M268,190 L268,162 L280,162 L280,150 L286,141 Q289,136 292,141 L298,150 L298,162 L310,162 L310,190 Z" fill="rgba(223,186,83,0.07)"/>
+                    <!-- Linha base tracejada -->
+                    <line x1="0" y1="188" x2="480" y2="188" stroke="rgba(223,186,83,0.22)" stroke-width="1" stroke-dasharray="5,7"/>
+                </svg>
+
+                <!-- Logo + título centralizados sobre o SVG -->
+                <img src="/static/images/logo.png" alt="RaLaHe" class="banner-logo">
+                <h2 class="banner-title">RaLaHe</h2>
+                <p class="banner-sub">Gastronomia Árabe Imperial</p>
+            </div>
+
             <div class="auth-card">
                 <div class="auth-tabs">
                     <button class="auth-tab-btn active" id="tab-register-btn" onclick="switchAuthTab('register')">Criar Conta</button>
@@ -735,8 +928,13 @@
                             <span>Cupom Aplicado:</span>
                             <span id="cart-discount-value">- R$ 0,00</span>
                         </div>
+                        <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:13px; display:none;" id="row-talher-cart">
+                            <span>🍴 Taxa de talher descartável:</span>
+                            <span id="cart-talher-value">R$ 0,00</span>
+                        </div>
+                        <div id="row-frete-detalhado" style="font-size:13px;"></div>
                         <div style="display:flex; justify-content:space-between; font-size:14px;" id="row-frete-cart">
-                            <span style="color:var(--text-muted);">Frete:</span>
+                            <span style="color:var(--text-muted);">Frete total:</span>
                             <span id="cart-frete-value" style="color:var(--text-muted);">R$ 0,00</span>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:19px; font-weight:800; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
@@ -775,31 +973,47 @@
 
                         <!-- Painel Cartão -->
                         <div id="detalhe-cartao" style="display:none; margin-top:16px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:14px; padding:20px;">
-                            <div style="display:flex; gap:10px; margin-bottom:14px;">
-                                <label id="tipo-credito" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border:1px solid var(--border-glow); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;">
-                                    <input type="radio" name="tipo-cartao" value="credito" style="accent-color:var(--gold-royal);" onchange="selecionarTipoCartao('credito')"> Crédito
-                                </label>
-                                <label id="tipo-debito" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border:1px solid var(--border-glow); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;">
-                                    <input type="radio" name="tipo-cartao" value="debito" style="accent-color:var(--gold-royal);" onchange="selecionarTipoCartao('debito')"> Débito
-                                </label>
-                            </div>
-                            <div class="input-group" style="margin-bottom:12px;">
-                                <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Número do Cartão</label>
-                                <input type="text" maxlength="19" placeholder="0000 0000 0000 0000" oninput="formatarCartao(this)" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:15px; letter-spacing:2px;">
-                            </div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-                                <div class="input-group" style="margin:0;">
-                                    <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Validade</label>
-                                    <input type="text" maxlength="5" placeholder="MM/AA" oninput="formatarValidade(this)" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px;">
-                                </div>
-                                <div class="input-group" style="margin:0;">
-                                    <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">CVV</label>
-                                    <input type="text" maxlength="3" placeholder="123" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px;">
+                            <!-- Cartões salvos -->
+                            <div id="cartoes-salvos-wrapper" style="display:none; margin-bottom:16px;">
+                                <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:8px;">💳 Cartões Salvos</label>
+                                <div id="lista-cartoes-salvos" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+                                <div style="border-top:1px solid var(--border-glow); padding-top:10px; margin-top:4px;">
+                                    <button onclick="usarNovoCartao()" style="background:none; border:1px dashed var(--gold-royal); color:var(--gold-royal); padding:7px 14px; border-radius:8px; font-size:11px; font-weight:700;">+ Usar novo cartão</button>
                                 </div>
                             </div>
-                            <div class="input-group" style="margin:0;">
-                                <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Nome no Cartão</label>
-                                <input type="text" placeholder="NOME SOBRENOME" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px; text-transform:uppercase;">
+
+                            <div id="form-novo-cartao">
+                                <div style="display:flex; gap:10px; margin-bottom:14px;">
+                                    <label id="tipo-credito" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border:1px solid var(--border-glow); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;">
+                                        <input type="radio" name="tipo-cartao" value="credito" style="accent-color:var(--gold-royal);" onchange="selecionarTipoCartao('credito')"> Crédito
+                                    </label>
+                                    <label id="tipo-debito" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; border:1px solid var(--border-glow); border-radius:10px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;">
+                                        <input type="radio" name="tipo-cartao" value="debito" style="accent-color:var(--gold-royal);" onchange="selecionarTipoCartao('debito')"> Débito
+                                    </label>
+                                </div>
+                                <div class="input-group" style="margin-bottom:12px;">
+                                    <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Número do Cartão</label>
+                                    <input type="text" id="cartao-numero" maxlength="19" placeholder="0000 0000 0000 0000" oninput="formatarCartao(this)" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:15px; letter-spacing:2px;">
+                                </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                                    <div class="input-group" style="margin:0;">
+                                        <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Validade</label>
+                                        <input type="text" id="cartao-validade" maxlength="5" placeholder="MM/AA" oninput="formatarValidade(this)" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px;">
+                                    </div>
+                                    <div class="input-group" style="margin:0;">
+                                        <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">CVV</label>
+                                        <input type="text" id="cartao-cvv" maxlength="3" placeholder="123" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px;">
+                                    </div>
+                                </div>
+                                <div class="input-group" style="margin-bottom:12px;">
+                                    <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; letter-spacing:1px;">Nome no Cartão</label>
+                                    <input type="text" id="cartao-nome" placeholder="NOME SOBRENOME" style="width:100%; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:14px; text-transform:uppercase;">
+                                </div>
+                                <!-- Salvar cartão -->
+                                <div style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(223,186,83,0.04); border:1px dashed rgba(223,186,83,0.3); border-radius:10px;">
+                                    <input type="checkbox" id="chk-salvar-cartao" style="width:16px; height:16px; accent-color:var(--gold-royal);">
+                                    <label for="chk-salvar-cartao" style="font-size:12px; font-weight:600; cursor:pointer;">💾 Salvar cartão para futuras compras</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -923,10 +1137,11 @@
                 <input type="text" id="modal-extra-ingredient" placeholder="Ex: Sem cebola, dobro de queijo, hortelã extra...">
             </div>
 
-            <!-- Talher descartável -->
+            <!-- Talher / Copo descartável -->
             <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px;">
                 <label style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;">
-                    🍴 Talher descartável?
+                    <span id="modal-utensilio-icone">🍴</span> <span id="modal-utensilio-label">Talher descartável?</span>
+                    <span style="font-size:11px; color:var(--gold-royal); font-weight:700;" id="modal-utensilio-preco">(+R$ 1,00)</span>
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                     <input type="checkbox" id="modal-talher" style="width:16px; height:16px; accent-color:var(--gold-royal);">
@@ -1172,9 +1387,16 @@
         }
         function toggleModoMobile() {
             document.body.classList.toggle('mobile-mode');
-            const btn = document.getElementById('btn-mobile-toggle');
-            btn.classList.toggle('ativo');
             const ativo = document.body.classList.contains('mobile-mode');
+
+            // Sincroniza botão do app
+            const btnApp = document.getElementById('btn-mobile-toggle');
+            if(btnApp) btnApp.classList.toggle('ativo', ativo);
+
+            // Sincroniza botão do login
+            const btnLogin = document.getElementById('auth-mobile-btn');
+            if(btnLogin) btnLogin.classList.toggle('ativo', ativo);
+
             mostrarToast(ativo ? '📱 Modo mobile ativado!' : '🖥️ Modo desktop restaurado!');
         }
 
@@ -1347,12 +1569,24 @@
         }
 
         function abrirModalCustomizacao(id, nome, desc, preco) {
-            pratoSelecionadoParaModal = { id, nome, desc, preco };
+            // Detecta categoria pelo sufixo do ID: _B = bebida, _D = doce, _S = salgado
+            const categoria = id.includes('_B') ? 'bebida' : (id.includes('_D') ? 'doce' : 'salgado');
+            pratoSelecionadoParaModal = { id, nome, desc, preco, categoria };
             document.getElementById('m-dish-title').innerText = nome;
             document.getElementById('m-dish-desc').innerText = desc;
             document.getElementById('modal-qty-counter').innerText = "1";
             document.getElementById('modal-extra-ingredient').value = "";
             document.getElementById('modal-talher').checked = false;
+            // Alterna label talher/copo conforme categoria
+            if(categoria === 'bebida') {
+                document.getElementById('modal-utensilio-icone').innerText = '🥤';
+                document.getElementById('modal-utensilio-label').innerText = 'Copo descartável?';
+                document.getElementById('modal-utensilio-preco').innerText = '(+R$ 0,50)';
+            } else {
+                document.getElementById('modal-utensilio-icone').innerText = '🍴';
+                document.getElementById('modal-utensilio-label').innerText = 'Talher descartável?';
+                document.getElementById('modal-utensilio-preco').innerText = '(+R$ 1,00)';
+            }
             // Kibe
             kibeTipoSelecionado = null;
             const kibeOpcoes = document.getElementById('modal-kibe-opcoes');
@@ -1385,6 +1619,8 @@
             const qtd = parseInt(document.getElementById('modal-qty-counter').innerText);
             const extraText = document.getElementById('modal-extra-ingredient').value.trim();
             const temTalher = document.getElementById('modal-talher').checked;
+            const categoria = pratoSelecionadoParaModal.categoria || 'salgado';
+            const taxaUtensilio = temTalher ? (categoria === 'bebida' ? 0.50 : 1.00) : 0;
             let nomeItem = pratoSelecionadoParaModal.nome;
             if(pratoSelecionadoParaModal.id === 'RB_S1') nomeItem = `Kibe ${kibeTipoSelecionado.charAt(0).toUpperCase()+kibeTipoSelecionado.slice(1)}`;
             
@@ -1401,6 +1637,8 @@
                     preco: pratoSelecionadoParaModal.preco,
                     extra: extraText,
                     talher: temTalher,
+                    taxaUtensilio,
+                    categoria,
                     restaurante
                 });
             }
@@ -1466,8 +1704,9 @@
             dump.innerHTML = ""; let subtotal = 0;
             window.sacolaProdutos.forEach((item, idx) => {
                 subtotal += item.preco;
+                const utensilioLabel = item.talher ? (item.categoria === 'bebida' ? '🥤 Com copo descartável' : '🍴 Com talher descartável') : '';
                 let extraDisplay = item.extra ? `<span class="cart-item-subtext">✨ Extra: ${item.extra}</span>` : '';
-                let talherDisplay = item.talher ? `<span class="cart-item-subtext">🍴 Com talher descartável</span>` : '';
+                let talherDisplay = item.talher ? `<span class="cart-item-subtext">${utensilioLabel} <span style="color:var(--gold-royal);">(+R$ ${(item.taxaUtensilio||0).toFixed(2)})</span></span>` : '';
                 dump.innerHTML += `
                     <div class="cart-item-row">
                         <div class="cart-item-info">
@@ -1482,18 +1721,37 @@
                     </div>`;
             });
 
-            // Calcula frete: maior frete entre os restaurantes no pedido
-            let freteValor = 0;
+            // Taxa de talher/copo
+            const totalTalher = window.sacolaProdutos.reduce((acc, i) => acc + (i.taxaUtensilio || 0), 0);
+            const rowTalher = document.getElementById('row-talher-cart');
+            if(totalTalher > 0) {
+                rowTalher.style.display = 'flex';
+                document.getElementById('cart-talher-value').innerText = `R$ ${totalTalher.toFixed(2)}`;
+            } else {
+                rowTalher.style.display = 'none';
+            }
+
+            // Frete detalhado por restaurante (soma todos)
             const prefixMap2 = { RB:'rei_do_beirute', AL:'aladdin_cia', AD:'arabic_dream', OD:'oasis_damasco', CO:'caravana-oriente' };
+            const nomeRestMap = { rei_do_beirute:'Rei do Beirute', aladdin_cia:'Aladdin & Cia', arabic_dream:'Arabic Dream', oasis_damasco:'Oásis de Damasco', 'caravana-oriente':'Caravana do Oriente' };
+            const restaurantesNoCarrinho = new Set();
             window.sacolaProdutos.forEach(item => {
                 const p = item.id.split('_')[0];
                 const key = prefixMap2[p];
-                if(key && fretePorRestaurante[key]) freteValor = Math.max(freteValor, fretePorRestaurante[key]);
+                if(key) restaurantesNoCarrinho.add(key);
             });
-            if(window.freteGratis) freteValor = 0;
+            let freteValor = 0;
+            let freteDetalhadoHtml = '';
+            restaurantesNoCarrinho.forEach(key => {
+                const taxa = fretePorRestaurante[key] || 0;
+                freteValor += taxa;
+                freteDetalhadoHtml += `<div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:12px; padding:2px 0 2px 8px;"><span>↳ ${nomeRestMap[key]}</span><span>R$ ${taxa.toFixed(2)}</span></div>`;
+            });
+            if(window.freteGratis) { freteValor = 0; freteDetalhadoHtml = ''; }
+            document.getElementById('row-frete-detalhado').innerHTML = freteDetalhadoHtml;
 
             let desconto = (subtotal * descontoPorcentagemGlobal) / 100;
-            let totalGeral = subtotal - desconto + freteValor;
+            let totalGeral = subtotal + totalTalher - desconto + freteValor;
 
             document.getElementById('cart-subtotal-value').innerText = `R$ ${subtotal.toFixed(2)}`;
             document.getElementById('cart-frete-value').innerText = window.freteGratis ? '🚚 Grátis' : `R$ ${freteValor.toFixed(2)}`;
@@ -1512,6 +1770,79 @@
             renderizarSacola();
         }
 
+        function carregarCartoesSalvos() {
+            const chave = 'cartoes_salvos_' + clienteObjeto.nome.toLowerCase();
+            return JSON.parse(localStorage.getItem(chave) || '[]');
+        }
+
+        function salvarCartaoNovo() {
+            const numero = document.getElementById('cartao-numero').value.trim();
+            const validade = document.getElementById('cartao-validade').value.trim();
+            const nome = document.getElementById('cartao-nome').value.trim();
+            const tipo = document.querySelector('input[name="tipo-cartao"]:checked')?.value || 'credito';
+            if(!numero || !validade || !nome) return;
+            const chave = 'cartoes_salvos_' + clienteObjeto.nome.toLowerCase();
+            const lista = carregarCartoesSalvos();
+            const ultimos4 = numero.replace(/\s/g,'').slice(-4);
+            // Evita duplicata pelo número
+            if(lista.find(c => c.ultimos4 === ultimos4 && c.validade === validade)) return;
+            lista.push({ tipo, nome, ultimos4, validade });
+            localStorage.setItem(chave, JSON.stringify(lista.slice(0, 5)));
+        }
+
+        function renderizarCartoesSalvos() {
+            const lista = carregarCartoesSalvos();
+            const wrapper = document.getElementById('cartoes-salvos-wrapper');
+            const listaEl = document.getElementById('lista-cartoes-salvos');
+            if(lista.length === 0) { wrapper.style.display = 'none'; return; }
+            wrapper.style.display = 'block';
+            listaEl.innerHTML = lista.map((c, i) => `
+                <div id="cartao-salvo-${i}" onclick="selecionarCartaoSalvo(${i})" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; cursor:pointer; transition:all 0.3s;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:18px;">${c.tipo === 'credito' ? '💳' : '🏧'}</span>
+                        <div>
+                            <div style="font-size:13px; font-weight:700;">•••• •••• •••• ${c.ultimos4}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${c.nome} · ${c.validade}</div>
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation(); removerCartaoSalvo(${i})" style="background:none; border:none; color:var(--danger); font-size:16px; cursor:pointer;">✕</button>
+                </div>`).join('');
+            document.getElementById('form-novo-cartao').style.display = 'none';
+        }
+
+        function selecionarCartaoSalvo(idx) {
+            document.querySelectorAll('[id^="cartao-salvo-"]').forEach((el, i) => {
+                el.style.borderColor = i === idx ? 'var(--gold-royal)' : 'var(--border-glow)';
+                el.style.boxShadow = i === idx ? '0 0 10px var(--gold-glow)' : '';
+            });
+            window.cartaoSalvoSelecionado = idx;
+            document.getElementById('form-novo-cartao').style.display = 'none';
+        }
+
+        function usarNovoCartao() {
+            window.cartaoSalvoSelecionado = null;
+            document.querySelectorAll('[id^="cartao-salvo-"]').forEach(el => {
+                el.style.borderColor = 'var(--border-glow)';
+                el.style.boxShadow = '';
+            });
+            document.getElementById('form-novo-cartao').style.display = 'block';
+            document.getElementById('cartao-numero').value = '';
+            document.getElementById('cartao-validade').value = '';
+            document.getElementById('cartao-cvv').value = '';
+            document.getElementById('cartao-nome').value = '';
+            document.getElementById('chk-salvar-cartao').checked = false;
+        }
+
+        function removerCartaoSalvo(idx) {
+            const chave = 'cartoes_salvos_' + clienteObjeto.nome.toLowerCase();
+            const lista = carregarCartoesSalvos();
+            lista.splice(idx, 1);
+            localStorage.setItem(chave, JSON.stringify(lista));
+            renderizarCartoesSalvos();
+            if(lista.length === 0) document.getElementById('form-novo-cartao').style.display = 'block';
+            mostrarToast("🗑 Cartão removido.");
+        }
+
         function selecionarPagamento(metodo) {
             document.querySelectorAll('#payment-options label').forEach(l => {
                 l.style.borderColor = 'var(--border-glow)';
@@ -1524,21 +1855,23 @@
             }
             document.getElementById('aviso-pagamento').style.display = 'none';
             window.pagamentoSelecionado = metodo;
-
-            // Esconde detalhes anteriores
             document.getElementById('detalhe-pix').style.display = 'none';
             document.getElementById('detalhe-cartao').style.display = 'none';
 
             if(metodo === 'pix') {
-                // Gera QR code aleatório usando API pública
-                const valor = document.getElementById('cart-total-value').innerText.replace('R$ ','').replace(',','.');
                 const pixRandom = 'PIX' + Math.random().toString(36).substring(2,12).toUpperCase();
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pixRandom)}`;
                 document.getElementById('pix-qr-img').src = qrUrl;
                 document.getElementById('pix-chave').innerText = pixRandom;
                 document.getElementById('detalhe-pix').style.display = 'block';
             } else if(metodo === 'cartao') {
+                window.cartaoSalvoSelecionado = null;
+                renderizarCartoesSalvos();
                 document.getElementById('detalhe-cartao').style.display = 'block';
+                // Se não há cartão salvo, já mostra o form
+                if(carregarCartoesSalvos().length === 0) {
+                    document.getElementById('form-novo-cartao').style.display = 'block';
+                }
             }
         }
 
@@ -1572,17 +1905,27 @@
             }
             // Validação campos do cartão
             if(window.pagamentoSelecionado === 'cartao') {
-                const inputs = document.querySelectorAll('#detalhe-cartao input[type="text"], #detalhe-cartao input[type="password"]');
-                let cartaoOk = true;
-                inputs.forEach(inp => {
-                    if(!inp.value.trim()) {
-                        inp.style.borderColor = '#E74C3C';
-                        inp.style.boxShadow = '0 0 8px rgba(231,76,60,0.4)';
-                        cartaoOk = false;
-                        inp.addEventListener('input', () => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, { once: true });
+                // Se tem cartão salvo selecionado, pula validação dos campos
+                if(window.cartaoSalvoSelecionado == null) {
+                    const inputs = document.querySelectorAll('#form-novo-cartao input[type="text"]');
+                    let cartaoOk = true;
+                    inputs.forEach(inp => {
+                        if(inp.id === 'cartao-cvv') return; // CVV não valida tipo
+                        if(!inp.value.trim()) {
+                            inp.style.borderColor = '#E74C3C';
+                            inp.style.boxShadow = '0 0 8px rgba(231,76,60,0.4)';
+                            cartaoOk = false;
+                            inp.addEventListener('input', () => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, { once: true });
+                        }
+                    });
+                    if(!cartaoOk) { mostrarToast("💳 Preencha todos os dados do cartão para continuar."); return; }
+                    // Salva cartão se checkbox marcado
+                    if(document.getElementById('chk-salvar-cartao').checked) {
+                        salvarCartaoNovo();
+                        mostrarToast("💾 Cartão salvo para futuras compras!");
                     }
-                });
-                if(!cartaoOk) { mostrarToast("💳 Preencha todos os dados do cartão para continuar."); return; }
+                }
+
             }
 
             // Marca como usado apenas o cupom de desconto ativo
