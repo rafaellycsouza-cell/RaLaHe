@@ -488,8 +488,12 @@
                         <input type="text" id="auth-nome" placeholder="Ex: Laryssa">
                     </div>
                     <div class="input-group">
-                        <label class="required">Senha de Segurança (Deve ser única)</label>
-                        <input type="password" id="auth-senha" placeholder="Crie uma senha única estável">
+                        <label class="required">Senha de Segurança</label>
+                        <input type="password" id="auth-senha" placeholder="Crie uma senha única">
+                    </div>
+                    <div class="input-group">
+                        <label class="required">Confirmar Senha</label>
+                        <input type="password" id="auth-senha-confirm" placeholder="Repita a senha criada acima">
                     </div>
                     <div class="input-group">
                         <label>E-mail Pessoal</label>
@@ -555,6 +559,7 @@
                 <div class="sidebar-item" onclick="verificarPermissaoTela('cart')"><span>🛒</span> Sacola de Pedidos</div>
                 <div class="sidebar-item" onclick="verificarPermissaoTela('status')"><span>🛵</span> Acompanhar Entrega</div>
                 <div class="sidebar-item" onclick="verificarPermissaoTela('profile')"><span>👤</span> Meu Perfil</div>
+                <div class="sidebar-item" onclick="verificarPermissaoTela('historico')"><span>⭐</span> Histórico de Avaliações</div>
             </div>
             <div class="sidebar-item" onclick="desconectarApp()" style="color:#E74C3C; margin-top: auto; font-weight: bold;"><span>🚪</span> Fazer Logout</div>
         </div>
@@ -658,7 +663,8 @@
                     </div>
 
                     <div style="margin-top: 30px; border-top: 1px solid var(--border-glow); padding-top: 20px;">
-                        <h4 style="color: var(--gold-royal); font-size: 14px; text-transform: uppercase; margin-bottom: 15px;">🎟️ Aplicar Cupom Disponível (Limite de 1 por compra)</h4>
+                        <h4 style="color: var(--gold-royal); font-size: 14px; text-transform: uppercase; margin-bottom: 10px;">🎟️ Cupons Disponíveis</h4>
+                        <button onclick="cancelarCupom()" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:5px 12px; border-radius:8px; font-size:11px; font-weight:700; margin-bottom:12px;">✕ Cancelar cupom ativo</button>
                         <div class="coupons-layout-container" id="coupons-list-wrapper">
                             
                             <div class="coupon-ticket" id="cp-ticket-15">
@@ -689,6 +695,20 @@
                                 </div>
                             </div>
 
+                            <div class="coupon-ticket" id="cp-ticket-frete">
+                                <div class="coupon-left">
+                                    <div class="coupon-value-badge" style="font-size:16px;">FRETE<span style="font-size:9px; margin-left:2px;">GRÁTIS</span></div>
+                                    <div class="coupon-condition-text">Entrega</div>
+                                </div>
+                                <div class="coupon-right">
+                                    <div>
+                                        <div class="coupon-store-header">Caravana Expressa</div>
+                                        <div class="coupon-scope-restriction">Frete grátis em qualquer pedido</div>
+                                    </div>
+                                    <button class="btn-coupon-buy" onclick="aplicarCupomFrete('cp-ticket-frete')">Aplicar</button>
+                                </div>
+                            </div>
+
                             <div class="coupon-ticket" id="cp-ticket-20">
                                 <div class="coupon-left">
                                     <div class="coupon-value-badge">20%<span>OFF</span></div>
@@ -714,6 +734,10 @@
                         <div style="display:flex; justify-content:space-between; color: var(--success); font-size:14px; display:none;" id="row-discount-cart">
                             <span>Cupom Aplicado:</span>
                             <span id="cart-discount-value">- R$ 0,00</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:14px;" id="row-frete-cart">
+                            <span style="color:var(--text-muted);">Frete:</span>
+                            <span id="cart-frete-value" style="color:var(--text-muted);">R$ 0,00</span>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:19px; font-weight:800; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
                             <span>Total Geral:</span>
@@ -742,8 +766,6 @@
                             </label>
                         </div>
                         <p id="aviso-pagamento" style="color:var(--danger); font-size:12px; margin-top:8px; display:none;">⚠️ Escolha uma forma de pagamento para continuar.</p>
-
-                        <!-- Painel PIX -->
                         <div id="detalhe-pix" style="display:none; margin-top:16px; background:rgba(255,255,255,0.02); border:1px solid var(--gold-royal); border-radius:14px; padding:20px; text-align:center;">
                             <p style="color:var(--gold-royal); font-size:13px; font-weight:700; margin-bottom:12px;">📲 Escaneie o QR Code para pagar</p>
                             <img id="pix-qr-img" src="" alt="QR Code Pix" style="width:180px; height:180px; border-radius:10px; border:2px solid var(--gold-royal); display:block; margin:0 auto 12px auto;">
@@ -807,6 +829,14 @@
                     </div>
                     <div id="txt-status-mensagem-dinamica">Mapeando entregadores disponíveis...</div>
                 </div>
+
+                <!-- Tela de Avaliação -->
+                <div id="status-avaliacao-state" class="status-panel" style="display:none;">
+                    <h3 class="status-tracker-text" style="font-size:22px;">🌟 Como foi seu pedido?</h3>
+                    <p style="color:var(--text-muted); font-size:13px; margin-bottom:25px;">Sua opinião ajuda a melhorar nossa experiência</p>
+                    <div id="avaliacao-restaurantes-container"></div>
+                    <button class="btn-luxury" style="margin-top:20px;" onclick="enviarAvaliacao()">Enviar Avaliação</button>
+                </div>
             </div>
 
             <div id="screen-profile" class="screen">
@@ -828,8 +858,16 @@
                         <input type="text" id="p-nome">
                     </div>
                     <div class="input-group">
-                        <label>Senha de Acesso (Deve ser única)</label>
-                        <input type="password" id="p-senha">
+                        <label>Senha Atual (obrigatório para trocar)</label>
+                        <input type="password" id="p-senha-atual" placeholder="Digite sua senha atual">
+                    </div>
+                    <div class="input-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="p-senha" placeholder="Deixe em branco para manter a atual">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar Nova Senha</label>
+                        <input type="password" id="p-senha-confirm" placeholder="Repita a nova senha">
                     </div>
                     <div class="input-group">
                         <label>E-mail Associado</label>
@@ -843,17 +881,57 @@
                 </div>
             </div>
 
+            <div id="screen-historico" class="screen">
+                <div class="profile-box" style="max-width:720px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; border-bottom:1px solid var(--border-glow); padding-bottom:18px;">
+                        <h3 style="color:var(--gold-royal); font-family:'Cinzel',serif; font-size:20px;">⭐ Histórico de Avaliações</h3>
+                        <button onclick="limparHistoricoAvaliacoes()" style="background:none; border:1px solid var(--danger); color:var(--danger); padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700;">🗑 Limpar tudo</button>
+                    </div>
+                    <div id="historico-lista-container">
+                        <p style="color:var(--text-muted); text-align:center; padding:30px 0; font-size:14px;">Nenhuma avaliação registrada ainda.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="modal-mask" id="custom-dish-modal">
+        <div class="modal-mask" id="custom-dish-modal">
         <div class="modal-box">
             <h4 class="modal-title" id="m-dish-title">Nome do Prato</h4>
             <p class="modal-desc" id="m-dish-desc">Descrição breve.</p>
             
+            <!-- Seleção frito/cru/assado - só aparece para o kibe -->
+            <div id="modal-kibe-opcoes" style="display:none; margin-top:12px;">
+                <label style="font-size:10px; color:var(--gold-royal); text-transform:uppercase; font-weight:800; letter-spacing:1px; display:block; margin-bottom:8px;">🍳 Como deseja o Kibe?</label>
+                <div style="display:flex; gap:8px;">
+                    <label id="kibe-frito" style="flex:1; text-align:center; padding:10px; border:1px solid var(--border-glow); border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.3s;">
+                        <input type="radio" name="kibe-tipo" value="Frito" style="display:none;" onchange="selecionarTipoKibe('frito')"> 🔥 Frito
+                    </label>
+                    <label id="kibe-cru" style="flex:1; text-align:center; padding:10px; border:1px solid var(--border-glow); border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.3s;">
+                        <input type="radio" name="kibe-tipo" value="Cru" style="display:none;" onchange="selecionarTipoKibe('cru')"> 🥩 Cru
+                    </label>
+                    <label id="kibe-assado" style="flex:1; text-align:center; padding:10px; border:1px solid var(--border-glow); border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.3s;">
+                        <input type="radio" name="kibe-tipo" value="Assado" style="display:none;" onchange="selecionarTipoKibe('assado')"> ♨️ Assado
+                    </label>
+                </div>
+                <p id="aviso-kibe" style="color:var(--danger); font-size:11px; margin-top:6px; display:none;">⚠ Escolha como quer o kibe.</p>
+            </div>
+
             <div class="input-group" style="margin-top: 15px;">
                 <label style="font-size: 10px; color: var(--gold-royal);">✨ Algum ingrediente extra?</label>
                 <input type="text" id="modal-extra-ingredient" placeholder="Ex: Sem cebola, dobro de queijo, hortelã extra...">
+            </div>
+
+            <!-- Talher descartável -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding:12px 15px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px;">
+                <label style="font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                    🍴 Talher descartável?
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" id="modal-talher" style="width:16px; height:16px; accent-color:var(--gold-royal);">
+                    <span style="font-size:12px; color:var(--text-muted);">Sim, incluir</span>
+                </label>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
@@ -876,9 +954,21 @@
         window.sacolaProdutos = [];
         window.statusIntervalEngine = null;
         window.statusProgressoAtual = 0;
+        window.pagamentoSelecionado = null;
+        window.freteGratis = false;
+        window.restaurantesNoPedido = new Set();
         let pratoSelecionadoParaModal = null;
         let descontoPorcentagemGlobal = 0;
         let temPedidoAtivoGeral = false;
+        let kibeTipoSelecionado = null;
+
+        const fretePorRestaurante = {
+            'rei_do_beirute': 7.00,
+            'aladdin_cia': 8.00,
+            'arabic_dream': 6.50,
+            'oasis_damasco': 9.00,
+            'caravana-oriente': 7.50
+        };
 
         // --- LÓGICA DO CURSOR ARREDONDADO COM ANIMAÇÃO DE CLIQUE ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -914,6 +1004,38 @@
                 setTimeout(() => cursorEl.classList.remove('click-animate'), 300);
             });
         });
+
+        function marcarErro(inputId, mensagem) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.style.borderColor = 'var(--danger)';
+            el.style.boxShadow = '0 0 8px rgba(231,76,60,0.4)';
+            // Remove erro anterior se existir
+            const anterior = el.parentNode.querySelector('.input-erro-msg');
+            if (anterior) anterior.remove();
+            const msg = document.createElement('small');
+            msg.className = 'input-erro-msg';
+            msg.style.cssText = 'color:var(--danger); font-size:11px; display:block; margin-top:5px;';
+            msg.innerText = '⚠ ' + mensagem;
+            el.parentNode.appendChild(msg);
+            el.addEventListener('input', () => {
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+                const m = el.parentNode.querySelector('.input-erro-msg');
+                if (m) m.remove();
+            }, { once: true });
+        }
+
+        function limparTodosErros(...ids) {
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+                const m = el.parentNode.querySelector('.input-erro-msg');
+                if (m) m.remove();
+            });
+        }
 
         function mostrarToast(mensagem) {
             const toast = document.getElementById('toast-notification');
@@ -953,15 +1075,20 @@
         }
 
         function registrarNovaConta() {
+            limparTodosErros('auth-nome', 'auth-senha', 'auth-senha-confirm');
             const nome = document.getElementById('auth-nome').value.trim();
             const senha = document.getElementById('auth-senha').value.trim();
-            if(!nome || !senha) { mostrarToast("✏️ Preencha seu nome e senha para criar a conta."); return; }
-
+            const senhaConfirm = document.getElementById('auth-senha-confirm').value.trim();
+            let valido = true;
+            if(!nome) { marcarErro('auth-nome', 'Nome de usuário obrigatório'); valido = false; }
+            if(!senha) { marcarErro('auth-senha', 'Crie uma senha para continuar'); valido = false; }
+            if(!senhaConfirm) { marcarErro('auth-senha-confirm', 'Confirme sua senha'); valido = false; }
+            if(valido && senha !== senhaConfirm) { marcarErro('auth-senha-confirm', 'As senhas não coincidem'); return; }
+            if(!valido) return;
             if(!verificarSenhaGlobalmenteUnica(senha)) {
-                mostrarToast("🔒 Essa senha já está em uso por outra pessoa. Escolha uma senha diferente.");
+                marcarErro('auth-senha', 'Esta senha já está em uso, escolha outra');
                 return;
             }
-
             const contaDb = { nome, senha, email: document.getElementById('auth-email').value, fone: document.getElementById('auth-fone').value, bairro: "", foto: "" };
             localStorage.setItem('user_' + nome.toLowerCase(), JSON.stringify(contaDb));
             localStorage.setItem('usuario_premium_dados', JSON.stringify(contaDb));
@@ -970,12 +1097,17 @@
         }
 
         function autenticarUsuarioExistente() {
-            const nomeInput = document.getElementById('login-nome').value.trim().toLowerCase();
+            limparTodosErros('login-nome', 'login-senha');
+            const nomeInput = document.getElementById('login-nome').value.trim();
             const senhaInput = document.getElementById('login-senha').value.trim();
-            const registroSalvo = localStorage.getItem('user_' + nomeInput);
-            if(!registroSalvo) { mostrarToast("🔍 Não encontramos esse usuário. Verifique o nome digitado."); return; }
+            let valido = true;
+            if(!nomeInput) { marcarErro('login-nome', 'Digite seu nome de usuário'); valido = false; }
+            if(!senhaInput) { marcarErro('login-senha', 'Digite sua senha'); valido = false; }
+            if(!valido) return;
+            const registroSalvo = localStorage.getItem('user_' + nomeInput.toLowerCase());
+            if(!registroSalvo) { marcarErro('login-nome', 'Usuário não encontrado'); return; }
             const dadosConta = JSON.parse(registroSalvo);
-            if(dadosConta.senha !== senhaInput) { mostrarToast("🔑 Senha incorreta. Tente novamente."); return; }
+            if(dadosConta.senha !== senhaInput) { marcarErro('login-senha', 'Senha incorreta'); return; }
             clienteObjeto = dadosConta;
             localStorage.setItem('usuario_premium_dados', JSON.stringify(dadosConta));
             entrarNoLayout();
@@ -1020,6 +1152,7 @@
             if(target) {
                 target.classList.add('active');
                 if(id === 'status') gerenciarLayoutStatusVisual();
+                if(id === 'historico') renderizarHistorico();
             }
         }
 
@@ -1191,9 +1324,13 @@
         function renderLista(arr, id) {
             const dump = document.getElementById(id); dump.innerHTML = "";
             arr.forEach(p => {
+                const imgSrc = '/static/images/' + p.img;
                 const imgTag = p.img 
-                    ? `<img src="/static/images/${p.img}" alt="${p.nome}" style="width:100%; height:160px; object-fit:cover; display:block;" onerror="this.style.display='none'">`
+                    ? `<img src="${imgSrc}" alt="${p.nome}" style="width:100%; height:160px; object-fit:cover; display:block;" onerror="this.style.display='none'">`
                     : `<div style="width:100%; height:160px; background:#221415; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.15); font-family:'Cinzel',serif; font-size:13px;">Sem imagem</div>`;
+                // Escapa valores para uso seguro em onclick
+                const nomeEsc = p.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+                const descEsc = p.desc.replace(/'/g,"\\'").replace(/"/g,'&quot;');
                 dump.innerHTML += `
                     <div class="dish-card">
                         ${imgTag}
@@ -1202,7 +1339,7 @@
                             <p class="dish-desc">${p.desc}</p>
                             <div class="dish-footer">
                                 <span class="dish-price">R$ ${p.preco.toFixed(2)}</span>
-                                <button class="btn-add-cart" onclick="abrirModalCustomizacao('${p.id}', '${p.nome}', '${p.desc}', ${p.preco})">Selecionar</button>
+                                <button class="btn-add-cart" onclick="abrirModalCustomizacao('${p.id}', '${nomeEsc}', '${descEsc}', ${p.preco})">Selecionar</button>
                             </div>
                         </div>
                     </div>`;
@@ -1214,7 +1351,21 @@
             document.getElementById('m-dish-title').innerText = nome;
             document.getElementById('m-dish-desc').innerText = desc;
             document.getElementById('modal-qty-counter').innerText = "1";
-            document.getElementById('modal-extra-ingredient').value = ""; // Limpa campo extra
+            document.getElementById('modal-extra-ingredient').value = "";
+            document.getElementById('modal-talher').checked = false;
+            // Kibe
+            kibeTipoSelecionado = null;
+            const kibeOpcoes = document.getElementById('modal-kibe-opcoes');
+            if(id === 'RB_S1') {
+                kibeOpcoes.style.display = 'block';
+                ['frito','cru','assado'].forEach(t => {
+                    document.getElementById('kibe-' + t).style.borderColor = 'var(--border-glow)';
+                    document.getElementById('kibe-' + t).style.background = 'rgba(255,255,255,0.02)';
+                });
+                document.getElementById('aviso-kibe').style.display = 'none';
+            } else {
+                kibeOpcoes.style.display = 'none';
+            }
             document.getElementById('custom-dish-modal').style.display = 'flex';
         }
         
@@ -1226,24 +1377,37 @@
         }
 
         function confirmarAdicionarSacolaComExtras() {
+            // Validação kibe
+            if(pratoSelecionadoParaModal.id === 'RB_S1' && !kibeTipoSelecionado) {
+                document.getElementById('aviso-kibe').style.display = 'block';
+                return;
+            }
             const qtd = parseInt(document.getElementById('modal-qty-counter').innerText);
             const extraText = document.getElementById('modal-extra-ingredient').value.trim();
+            const temTalher = document.getElementById('modal-talher').checked;
+            let nomeItem = pratoSelecionadoParaModal.nome;
+            if(pratoSelecionadoParaModal.id === 'RB_S1') nomeItem = `Kibe ${kibeTipoSelecionado.charAt(0).toUpperCase()+kibeTipoSelecionado.slice(1)}`;
             
+            // Detecta restaurante pelo prefixo do id
+            const prefixMap = { RB:'Rei do Beirute', AL:'Aladdin & Cia', AD:'Arabic Dream', OD:'Oásis de Damasco', CO:'Caravana do Oriente' };
+            const prefix = pratoSelecionadoParaModal.id.split('_')[0];
+            const restaurante = prefixMap[prefix] || 'Restaurante';
+            window.restaurantesNoPedido.add(restaurante);
+
             for(let i=0; i<qtd; i++) {
                 window.sacolaProdutos.push({ 
                     id: pratoSelecionadoParaModal.id, 
-                    nome: pratoSelecionadoParaModal.nome, 
+                    nome: nomeItem, 
                     preco: pratoSelecionadoParaModal.preco,
-                    extra: extraText 
+                    extra: extraText,
+                    talher: temTalher,
+                    restaurante
                 });
             }
-            
             document.getElementById('global-cart-count').innerText = window.sacolaProdutos.length;
             renderizarSacola(); 
             fecharModalCustomizacao();
-            
-            // Dispara mensagem no canto inferior direito
-            exibirToastNotificacao(`Adicionado: ${qtd}x ${pratoSelecionadoParaModal.nome} à sacola!`);
+            mostrarToast(`✅ ${qtd}x ${nomeItem} adicionado!`);
         }
 
         function aplicarDescontoCupom(porcentagem, cupomElementId) {
@@ -1252,38 +1416,39 @@
                 return; 
             }
             if(descontoPorcentagemGlobal > 0) {
-                mostrarToast("🎟️ Você já tem um cupom aplicado nesta compra.");
+                mostrarToast("🎟️ Você já tem um cupom aplicado. Cancele o atual primeiro.");
                 return;
             }
-
-            // Verifica se o usuário já usou este cupom antes
             const chaveUsado = 'cupom_usado_' + clienteObjeto.nome.toLowerCase() + '_' + cupomElementId;
             if(localStorage.getItem(chaveUsado)) {
                 mostrarToast("❌ Você já usou este cupom anteriormente. Cada cupom só pode ser usado uma vez.");
                 return;
             }
-            
             descontoPorcentagemGlobal = porcentagem;
-            // Marca o cupom como usado permanentemente para este usuário
-            localStorage.setItem(chaveUsado, '1');
-            renderizarSacola();
-            
-            const cupomCard = document.getElementById(cupomElementId);
-            if(cupomCard) {
-                cupomCard.style.opacity = '0';
-                setTimeout(() => { cupomCard.style.display = 'none'; }, 400);
+            window.cupomDescontoId = cupomElementId;
+            // Marca visualmente o cupom ativo
+            document.querySelectorAll('.coupon-ticket').forEach(el => {
+                el.style.borderColor = '';
+                el.style.boxShadow = '';
+            });
+            const cupomEl = document.getElementById(cupomElementId);
+            if(cupomEl) {
+                cupomEl.style.borderColor = 'var(--gold-royal)';
+                cupomEl.style.boxShadow = '0 0 12px var(--gold-glow)';
             }
-            
-            mostrarToast(`🎉 Cupom de ${porcentagem}% aplicado com sucesso!`);
+            renderizarSacola();
+            mostrarToast(`🎉 Cupom de ${porcentagem}% aplicado!`);
         }
 
         function inicializarCuponsUsados() {
-            // Ao carregar a sacola, esconde cupons já usados pelo usuário atual
-            ['cp-ticket-15','cp-ticket-10','cp-ticket-20'].forEach(id => {
+            // Marca visualmente cupons já utilizados, sem escondê-los
+            ['cp-ticket-15','cp-ticket-10','cp-ticket-20','cp-ticket-frete'].forEach(id => {
                 const chave = 'cupom_usado_' + clienteObjeto.nome.toLowerCase() + '_' + id;
-                if(localStorage.getItem(chave)) {
-                    const el = document.getElementById(id);
-                    if(el) el.style.display = 'none';
+                const el = document.getElementById(id);
+                if(el && localStorage.getItem(chave)) {
+                    el.style.opacity = '0.4';
+                    const btn = el.querySelector('.btn-coupon-buy');
+                    if(btn) { btn.innerText = 'Já usado'; btn.disabled = true; btn.style.opacity = '0.5'; }
                 }
             });
         }
@@ -1294,6 +1459,7 @@
                 dump.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 20px;">Sua sacola está vazia no momento.</p>`;
                 document.getElementById('cart-subtotal-value').innerText = "R$ 0,00";
                 document.getElementById('cart-total-value').innerText = "R$ 0,00";
+                document.getElementById('cart-frete-value').innerText = "R$ 0,00";
                 document.getElementById('row-discount-cart').style.display = 'none';
                 return;
             }
@@ -1301,12 +1467,13 @@
             window.sacolaProdutos.forEach((item, idx) => {
                 subtotal += item.preco;
                 let extraDisplay = item.extra ? `<span class="cart-item-subtext">✨ Extra: ${item.extra}</span>` : '';
-                
+                let talherDisplay = item.talher ? `<span class="cart-item-subtext">🍴 Com talher descartável</span>` : '';
                 dump.innerHTML += `
                     <div class="cart-item-row">
                         <div class="cart-item-info">
                             <h5>${item.nome}</h5>
-                            ${extraDisplay}
+                            <span class="cart-item-subtext" style="color:var(--gold-royal); font-size:10px;">${item.restaurante || ''}</span>
+                            ${extraDisplay}${talherDisplay}
                         </div>
                         <div style="display:flex; gap:20px; align-items:center;">
                             <span class="cart-item-price">R$ ${item.preco.toFixed(2)}</span>
@@ -1315,10 +1482,21 @@
                     </div>`;
             });
 
+            // Calcula frete: maior frete entre os restaurantes no pedido
+            let freteValor = 0;
+            const prefixMap2 = { RB:'rei_do_beirute', AL:'aladdin_cia', AD:'arabic_dream', OD:'oasis_damasco', CO:'caravana-oriente' };
+            window.sacolaProdutos.forEach(item => {
+                const p = item.id.split('_')[0];
+                const key = prefixMap2[p];
+                if(key && fretePorRestaurante[key]) freteValor = Math.max(freteValor, fretePorRestaurante[key]);
+            });
+            if(window.freteGratis) freteValor = 0;
+
             let desconto = (subtotal * descontoPorcentagemGlobal) / 100;
-            let totalGeral = subtotal - desconto;
+            let totalGeral = subtotal - desconto + freteValor;
 
             document.getElementById('cart-subtotal-value').innerText = `R$ ${subtotal.toFixed(2)}`;
+            document.getElementById('cart-frete-value').innerText = window.freteGratis ? '🚚 Grátis' : `R$ ${freteValor.toFixed(2)}`;
             if(desconto > 0) {
                 document.getElementById('row-discount-cart').style.display = 'flex';
                 document.getElementById('cart-discount-value').innerText = `- R$ ${desconto.toFixed(2)}`;
@@ -1392,16 +1570,47 @@
                 mostrarToast("💳 Escolha uma forma de pagamento para continuar.");
                 return;
             }
+            // Validação campos do cartão
+            if(window.pagamentoSelecionado === 'cartao') {
+                const inputs = document.querySelectorAll('#detalhe-cartao input[type="text"], #detalhe-cartao input[type="password"]');
+                let cartaoOk = true;
+                inputs.forEach(inp => {
+                    if(!inp.value.trim()) {
+                        inp.style.borderColor = '#E74C3C';
+                        inp.style.boxShadow = '0 0 8px rgba(231,76,60,0.4)';
+                        cartaoOk = false;
+                        inp.addEventListener('input', () => { inp.style.borderColor = ''; inp.style.boxShadow = ''; }, { once: true });
+                    }
+                });
+                if(!cartaoOk) { mostrarToast("💳 Preencha todos os dados do cartão para continuar."); return; }
+            }
+
+            // Marca como usado apenas o cupom de desconto ativo
+            if(descontoPorcentagemGlobal > 0 && window.cupomDescontoId) {
+                const chave = 'cupom_usado_' + clienteObjeto.nome.toLowerCase() + '_' + window.cupomDescontoId;
+                localStorage.setItem(chave, '1');
+                const el = document.getElementById(window.cupomDescontoId);
+                if(el) { el.style.borderColor = ''; el.style.boxShadow = ''; el.style.opacity = '0.4'; }
+            }
+            if(window.freteGratis && window.cupomFreteId) {
+                const chave = 'cupom_usado_' + clienteObjeto.nome.toLowerCase() + '_' + window.cupomFreteId;
+                localStorage.setItem(chave, '1');
+            }
+
             mostrarToast("✅ Pedido confirmado! Sua caravana está a caminho.");
             window.sacolaProdutos = [];
             document.getElementById('global-cart-count').innerText = "0";
             descontoPorcentagemGlobal = 0;
+            window.cupomDescontoId = null;
             window.pagamentoSelecionado = null;
+            window.freteGratis = false;
             document.querySelectorAll('input[name="pagamento"]').forEach(r => r.checked = false);
             document.querySelectorAll('#payment-options label').forEach(l => {
                 l.style.borderColor = 'var(--border-glow)';
                 l.style.background = 'rgba(255,255,255,0.02)';
             });
+            document.getElementById('detalhe-pix').style.display = 'none';
+            document.getElementById('detalhe-cartao').style.display = 'none';
             renderizarSacola();
             temPedidoAtivoGeral = true;
             switchScreen('status');
@@ -1450,10 +1659,7 @@
                     window.statusIntervalEngine = null;
                     
                     setTimeout(() => {
-                        temPedidoAtivoGeral = false;
-                        window.statusProgressoAtual = 0;
-                        switchScreen('home');
-                        bar.style.width = "0%";
+                        mostrarTelaAvaliacao();
                     }, 1500);
                 }
             }, 150);
@@ -1493,7 +1699,7 @@
             document.getElementById('menu-welcome-subtitle').innerText = "Olá, " + clienteObjeto.nome.toUpperCase() + " — Selecione uma dinastia gastronômica";
             document.getElementById('profile-display-name').innerText = clienteObjeto.nome;
             document.getElementById('p-nome').value = clienteObjeto.nome;
-            document.getElementById('p-senha').value = clienteObjeto.senha;
+            document.getElementById('p-senha').value = '';
             document.getElementById('p-email').value = clienteObjeto.email;
             document.getElementById('p-fone').value = clienteObjeto.fone;
 
@@ -1520,28 +1726,190 @@
         }
 
         function salvarAlteracoesPerfil() {
+            limparTodosErros('p-nome','p-senha-atual','p-senha','p-senha-confirm');
             const n = document.getElementById('p-nome').value.trim();
-            const s = document.getElementById('p-senha').value.trim();
-            if(!n || !s) return;
+            const senhaAtual = document.getElementById('p-senha-atual').value.trim();
+            const novaSenha = document.getElementById('p-senha').value.trim();
+            const confirmarNova = document.getElementById('p-senha-confirm').value.trim();
+            if(!n) { marcarErro('p-nome', 'Nome obrigatório'); return; }
 
-            if(!verificarSenhaGlobalmenteUnica(s, clienteObjeto.nome)) {
-                mostrarToast("🔒 Essa senha já está em uso. Escolha outra para continuar.");
-                return;
+            if(novaSenha || confirmarNova || senhaAtual) {
+                if(!senhaAtual) { marcarErro('p-senha-atual', 'Digite sua senha atual para alterá-la'); return; }
+                if(senhaAtual !== clienteObjeto.senha) { marcarErro('p-senha-atual', 'Senha atual incorreta'); return; }
+                if(!novaSenha) { marcarErro('p-senha', 'Digite a nova senha'); return; }
+                if(!confirmarNova) { marcarErro('p-senha-confirm', 'Confirme a nova senha'); return; }
+                if(novaSenha !== confirmarNova) { marcarErro('p-senha-confirm', 'As senhas não coincidem'); return; }
+                if(!verificarSenhaGlobalmenteUnica(novaSenha, clienteObjeto.nome)) {
+                    marcarErro('p-senha', 'Esta senha já está em uso, escolha outra'); return;
+                }
+                clienteObjeto.senha = novaSenha;
             }
 
             if(n.toLowerCase() !== clienteObjeto.nome.toLowerCase()) {
                 localStorage.removeItem('user_' + clienteObjeto.nome.toLowerCase());
             }
-
-            clienteObjeto.nome = n; 
-            clienteObjeto.senha = s;
+            clienteObjeto.nome = n;
             clienteObjeto.email = document.getElementById('p-email').value;
             clienteObjeto.fone = document.getElementById('p-fone').value;
-
             localStorage.setItem('usuario_premium_dados', JSON.stringify(clienteObjeto));
             localStorage.setItem('user_' + n.toLowerCase(), JSON.stringify(clienteObjeto));
+            // Limpa campos de senha após salvar
+            document.getElementById('p-senha-atual').value = '';
+            document.getElementById('p-senha').value = '';
+            document.getElementById('p-senha-confirm').value = '';
             mostrarToast("✅ Perfil atualizado com sucesso!");
             sincronizarCamposPerfil();
+        }
+
+        // Funções kibe, cupom frete, avaliação e carrinhos com restaurante
+        function selecionarTipoKibe(tipo) {
+            kibeTipoSelecionado = tipo;
+            ['frito','cru','assado'].forEach(t => {
+                const el = document.getElementById('kibe-' + t);
+                el.style.borderColor = t === tipo ? 'var(--gold-royal)' : 'var(--border-glow)';
+                el.style.background  = t === tipo ? 'var(--gold-glow)' : 'rgba(255,255,255,0.02)';
+            });
+            document.getElementById('aviso-kibe').style.display = 'none';
+        }
+
+        function aplicarCupomFrete(cupomId) {
+            if(window.sacolaProdutos.length === 0) { mostrarToast("🛒 Adicione itens antes de usar o cupom."); return; }
+            const chave = 'cupom_usado_' + clienteObjeto.nome.toLowerCase() + '_' + cupomId;
+            if(localStorage.getItem(chave)) { mostrarToast("❌ Você já usou este cupom de frete."); return; }
+            if(window.freteGratis) { mostrarToast("🚚 Frete grátis já está aplicado!"); return; }
+            window.freteGratis = true;
+            window.cupomFreteId = cupomId;
+            renderizarSacola();
+            mostrarToast("🚚 Frete grátis aplicado!");
+            // Destaca visualmente
+            const el = document.getElementById(cupomId);
+            if(el) { el.style.borderColor = 'var(--gold-royal)'; el.style.opacity = '0.6'; }
+        }
+
+
+        function cancelarCupom() {
+            let algoCancelado = false;
+            if(descontoPorcentagemGlobal > 0) {
+                if(window.cupomDescontoId) {
+                    const el = document.getElementById(window.cupomDescontoId);
+                    if(el) { el.style.borderColor = ''; el.style.boxShadow = ''; }
+                }
+                descontoPorcentagemGlobal = 0;
+                window.cupomDescontoId = null;
+                algoCancelado = true;
+            }
+            if(window.freteGratis) {
+                window.freteGratis = false;
+                const el = document.getElementById(window.cupomFreteId);
+                if(el) { el.style.borderColor = ''; el.style.boxShadow = ''; el.style.opacity = '1'; }
+                window.cupomFreteId = null;
+                algoCancelado = true;
+            }
+            if(algoCancelado) {
+                renderizarSacola();
+                mostrarToast("🎟️ Cupom removido. Escolha outro se quiser.");
+            } else {
+                mostrarToast("Nenhum cupom ativo para cancelar.");
+            }
+        }
+
+        function sanitizarId(str) {
+            return str.replace(/[^a-zA-Z0-9_]/g, '_');
+        }
+
+        function mostrarTelaAvaliacao() {
+            document.getElementById('status-active-state').style.display = 'none';
+            document.getElementById('status-avaliacao-state').style.display = 'block';
+            const container = document.getElementById('avaliacao-restaurantes-container');
+            container.innerHTML = '';
+            const rests = [...window.restaurantesNoPedido];
+            if(rests.length === 0) rests.push('Restaurante');
+            rests.forEach(rest => {
+                const safeId = sanitizarId(rest);
+                container.innerHTML += `
+                <div style="margin-bottom:20px; padding:18px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:14px;">
+                    <p style="font-weight:700; color:var(--gold-royal); margin-bottom:10px; font-size:14px;">${rest}</p>
+                    <div style="display:flex; gap:6px; justify-content:center;" id="stars-${safeId}">
+                        ${[1,2,3,4,5].map(i => `<span onclick="selecionarEstrela('${safeId}',${i})" style="font-size:28px; cursor:pointer; filter:grayscale(1); transition:0.2s;" data-val="${i}">⭐</span>`).join('')}
+                    </div>
+                    <textarea id="comentario-${safeId}" placeholder="Deixe um comentário (opcional)..." style="width:100%; margin-top:12px; padding:10px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:10px; color:var(--text-pure); font-size:13px; resize:none; height:70px;"></textarea>
+                </div>`;
+            });
+        }
+
+        function selecionarEstrela(safeId, val) {
+            const stars = document.querySelectorAll(`#stars-${safeId} span`);
+            stars.forEach(s => {
+                s.style.filter = parseInt(s.dataset.val) <= val ? 'none' : 'grayscale(1)';
+            });
+        }
+
+        function enviarAvaliacao() {
+            const rests = [...window.restaurantesNoPedido];
+            if(rests.length === 0) rests.push('Restaurante');
+            
+            const novasAvaliacoes = [];
+            rests.forEach(rest => {
+                const safeId = sanitizarId(rest);
+                const stars = document.querySelectorAll(`#stars-${safeId} span`);
+                let nota = 0;
+                stars.forEach(s => { if(s.style.filter === 'none') nota = parseInt(s.dataset.val); });
+                const comentario = document.getElementById('comentario-' + safeId)?.value.trim() || '';
+                novasAvaliacoes.push({
+                    restaurante: rest,
+                    nota,
+                    comentario,
+                    data: new Date().toLocaleDateString('pt-BR'),
+                    hora: new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
+                });
+            });
+
+            // Salva no localStorage
+            const chave = 'historico_avaliacoes_' + clienteObjeto.nome.toLowerCase();
+            const existentes = JSON.parse(localStorage.getItem(chave) || '[]');
+            const atualizado = [...novasAvaliacoes, ...existentes].slice(0, 50); // máximo 50
+            localStorage.setItem(chave, JSON.stringify(atualizado));
+
+            mostrarToast("⭐ Obrigado pela avaliação!");
+            document.getElementById('status-avaliacao-state').style.display = 'none';
+            document.getElementById('status-empty-state').style.display = 'block';
+            window.restaurantesNoPedido = new Set();
+            temPedidoAtivoGeral = false;
+            window.statusProgressoAtual = 0;
+            document.getElementById('fluid-bar-status').style.width = '0%';
+            switchScreen('home');
+        }
+
+        function renderizarHistorico() {
+            const chave = 'historico_avaliacoes_' + clienteObjeto.nome.toLowerCase();
+            const lista = JSON.parse(localStorage.getItem(chave) || '[]');
+            const container = document.getElementById('historico-lista-container');
+            if(!container) return;
+            if(lista.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:30px 0; font-size:14px;">Nenhuma avaliação registrada ainda.</p>';
+                return;
+            }
+            container.innerHTML = lista.map((av, i) => {
+                const estrelas = [1,2,3,4,5].map(n =>
+                    `<span style="font-size:18px; filter:${n <= av.nota ? 'none' : 'grayscale(1)'};">⭐</span>`
+                ).join('');
+                return `
+                <div style="padding:18px; background:rgba(255,255,255,0.02); border:1px solid var(--border-glow); border-radius:14px; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <span style="font-weight:700; color:var(--gold-royal); font-size:14px;">${av.restaurante}</span>
+                        <span style="font-size:11px; color:var(--text-muted);">${av.data} às ${av.hora}</span>
+                    </div>
+                    <div style="margin-bottom:8px;">${estrelas}</div>
+                    ${av.comentario ? `<p style="font-size:13px; color:var(--text-muted); font-style:italic; margin:0;">"${av.comentario}"</p>` : '<p style="font-size:12px; color:rgba(255,255,255,0.2); margin:0;">Sem comentário</p>'}
+                </div>`;
+            }).join('');
+        }
+
+        function limparHistoricoAvaliacoes() {
+            const chave = 'historico_avaliacoes_' + clienteObjeto.nome.toLowerCase();
+            localStorage.removeItem(chave);
+            renderizarHistorico();
+            mostrarToast("🗑 Histórico de avaliações limpo.");
         }
     </script>
 </body>
