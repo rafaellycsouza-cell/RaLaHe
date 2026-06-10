@@ -1,0 +1,857 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+<style>
+    /* BANNER RENOVADO: DEGRADÊ DOURADO MAJESTOSO */
+    .welcome-banner {
+        background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 24px;
+        padding: 55px;
+        margin-bottom: 40px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255,255,255,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.15));
+        pointer-events: none;
+    }
+    .welcome-banner h2 { 
+        font-size: 44px; 
+        color: #140c0d; 
+        margin-bottom: 12px; 
+        font-family: 'Cinzel', serif;
+        font-weight: 800;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+    }
+    .welcome-banner p { 
+        color: #2a1a1c; 
+        font-size: 16px; 
+        max-width: 620px; 
+        margin: 0 auto; 
+        font-weight: 700;
+    }
+
+    .section-title {
+        font-size: 28px;
+        color: var(--text-pure);
+        margin-bottom: 25px;
+        border-left: 4px solid var(--gold-royal);
+        padding-left: 15px;
+        text-transform: uppercase;
+    }
+
+    /* Vitrine de Restaurantes */
+    .restaurants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 50px;
+    }
+    .restaurant-premium-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-glow);
+        border-radius: 20px;
+        padding: 25px;
+        transition: var(--premium-transition);
+        text-align: center;
+        cursor: pointer;
+    }
+    .restaurant-premium-box:hover, .restaurant-premium-box.selected {
+        border-color: var(--gold-royal);
+        box-shadow: 0 15px 30px var(--gold-glow);
+        transform: translateY(-5px);
+    }
+    .restaurant-icon { font-size: 40px; margin-bottom: 15px; display: block; }
+    .restaurant-premium-box h3 { font-size: 20px; color: var(--gold-royal); margin-bottom: 8px; }
+    .restaurant-premium-box p { color: var(--text-muted); font-size: 13px; }
+
+    /* Menu de Categorias */
+    .menu-categories-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 35px;
+    }
+    .category-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border-glow);
+        color: var(--text-pure);
+        padding: 12px 28px;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        transition: var(--premium-transition);
+    }
+    .category-btn.active, .category-btn:hover {
+        background: var(--gold-royal);
+        color: #050303;
+        border-color: var(--gold-royal);
+        box-shadow: 0 8px 20px var(--gold-glow);
+    }
+
+    /* Grid de Pratos */
+    .dishes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        display: none;
+    }
+    .dishes-grid.active { display: grid; }
+
+    .dish-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-glow);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: var(--premium-transition);
+        cursor: pointer;
+    }
+    .dish-card:hover {
+        border-color: rgba(255,255,255,0.15);
+        transform: translateY(-3px);
+    }
+    .dish-image-container {
+        width: 100%;
+        height: 180px;
+        background: #1c1213;
+        overflow: hidden;
+    }
+    .dish-image-container img {
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    .dish-content-padding {
+        padding: 20px; display: flex; flex-direction: column; flex-grow: 1;
+    }
+    .dish-info h4 { font-size: 17px; color: var(--text-pure); margin-bottom: 8px; }
+    .dish-info p { color: var(--text-muted); font-size: 12.5px; line-height: 1.5; margin-bottom: 15px; }
+    
+    .dish-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.02);
+    }
+    .dish-price { font-size: 17px; font-weight: 800; color: var(--gold-royal); }
+
+    /* BOTÕES DOURADOS PREMIUM EM TODO O SISTEMA */
+    .btn-gold-action {
+        background: linear-gradient(135deg, var(--gold-royal) 0%, #aa771c 100%) !important;
+        color: #0d0708 !important;
+        border: 1px solid var(--gold-royal) !important;
+        padding: 10px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(223, 186, 83, 0.2);
+    }
+    .btn-gold-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px var(--gold-glow);
+        filter: brightness(1.1);
+    }
+
+    /* MINI TELA MODAL COM SELETOR DE QUANTIDADE */
+    #extra-ingredients-modal {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+        z-index: 9999; display: none; align-items: center; justify-content: center;
+    }
+    .mini-modal-box {
+        background: var(--bg-card); border: 1px solid var(--gold-royal);
+        border-radius: 24px; width: 90%; max-width: 480px; padding: 30px;
+    }
+    .mini-modal-img {
+        width: 100%; height: 160px; object-fit: cover; border-radius: 14px; margin-bottom: 15px;
+    }
+    .quantity-selector-container {
+        display: flex; justify-content: space-between; align-items: center;
+        background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 15px;
+        margin-bottom: 20px; border: 1px solid var(--border-glow);
+    }
+    .qty-btn {
+        background: var(--wine-deep); border: 1px solid var(--gold-royal); color: var(--text-pure);
+        width: 32px; height: 32px; border-radius: 50%; font-weight: bold; cursor: pointer;
+    }
+    .extra-option-row {
+        display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+    }
+    .extra-option-row input { width: 18px; height: 18px; accent-color: var(--gold-royal); }
+
+    /* Seção de Cupons na Sacola */
+    .coupon-box-wrapper {
+        margin-top: 20px; padding: 15px; background: rgba(223,186,83,0.03);
+        border: 1px dashed var(--gold-royal); border-radius: 15px;
+    }
+    .coupon-input-group { display: flex; gap: 10px; margin-top: 8px; }
+    .coupon-input-group input {
+        flex-grow: 1; background: #0d0708; border: 1px solid var(--border-glow);
+        padding: 8px 15px; border-radius: 10px; color: var(--text-pure); font-size: 13px;
+    }
+
+    /* Correção de Contraste para Lista de Seleção de Bairros */
+    select, .select-bairro-customizado, select option {
+        background-color: #140c0d !important;
+        color: var(--gold-royal) !important;
+        font-weight: 600 !important;
+        border: 1px solid var(--border-glow) !important;
+    }
+
+    /* Sacola e Perfil */
+    .cart-wrapper, .profile-card {
+        background: var(--bg-card); border: 1px solid var(--border-glow);
+        border-radius: 24px; padding: 35px; max-width: 600px; margin: 0 auto;
+    }
+    .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .cart-totals { margin-top: 25px; padding-top: 20px; border-top: 2px dashed rgba(255,255,255,0.08); }
+    .total-line { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div id="extra-ingredients-modal">
+    <div class="mini-modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 id="modal-item-titulo" class="font-luxury" style="color: var(--gold-royal); font-size: 20px;">Personalizar</h3>
+            <span style="font-size: 22px; color: var(--text-muted); cursor: pointer;" onclick="fecharMiniTelaExtra()">✕</span>
+        </div>
+        <img id="modal-item-img" src="" class="mini-modal-img" alt="Foto">
+        <p id="modal-item-desc" style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 15px;"></p>
+        
+        <div class="quantity-selector-container">
+            <span style="font-size: 14px; font-weight: 700;">Quantidade desejada:</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="qty-btn" onclick="alterarContagemModal(-1)">-</button>
+                <span id="modal-item-quantidade" style="font-size: 16px; font-weight: 800; color: var(--gold-royal);">1</span>
+                <button class="qty-btn" onclick="alterarContagemModal(1)">+</button>
+            </div>
+        </div>
+
+        <h4 style="font-size: 11px; color: var(--gold-royal); text-transform: uppercase; margin-bottom: 8px;">Adicionais Extras</h4>
+        <div style="max-height: 140px; overflow-y: auto; margin-bottom: 20px;">
+            <div class="extra-option-row">
+                <label><input type="checkbox" class="chk-extra" value="Molho de Alho Árabe" data-preco="3.50"> Molho de Alho Árabe</label>
+                <span style="color: var(--gold-royal); font-size: 13px;">+ R$ 3,50</span>
+            </div>
+            <div class="extra-option-row">
+                <label><input type="checkbox" class="chk-extra" value="Queijo Extra" data-preco="5.00"> Queijo Extra</label>
+                <span style="color: var(--gold-royal); font-size: 13px;">+ R$ 5,00</span>
+            </div>
+            <div class="extra-option-row">
+                <label><input type="checkbox" class="chk-extra" value="Coalhada Especial" data-preco="6.00"> Coalhada Especial</label>
+                <span style="color: var(--gold-royal); font-size: 13px;">+ R$ 6,00</span>
+            </div>
+        </div>
+        <button class="btn-luxury" id="btn-modal-confirmar-adicionar">Adicionar à Sacola — <span id="modal-item-preco-display">R$ 0,00</span></button>
+    </div>
+</div>
+
+<div id="screen-home" class="screen active">
+    <div class="welcome-banner">
+        <h2>Experiência Gastronômica Árabe</h2>
+        <p>Selecione um dos palácios culinários abaixo para explorar suas iguarias e receitas tradicionais.</p>
+    </div>
+
+    <h3 class="section-title">Palácios Culinários</h3>
+    <div class="restaurants-grid">
+        <div class="restaurant-premium-box" id="rest-box-rei" onclick="selecionarRestaurante('Rei do Beirute')">
+            <span class="restaurant-icon">👑</span>
+            <h3>Rei do Beirute</h3>
+            <p>Tradição milenar em Shawarmas, Kibes e a autêntica doçaria Baklava.</p>
+        </div>
+        <div class="restaurant-premium-box" id="rest-box-aladdin" onclick="selecionarRestaurante('Aladdin & Cia')">
+            <span class="restaurant-icon">🧞‍♂️</span>
+            <h3>Aladdin & Cia</h3>
+            <p>Especialistas em pastas defumadas, saladas refrescantes e o místico Arak.</p>
+        </div>
+        <div class="restaurant-premium-box" id="rest-box-dream" onclick="selecionarRestaurante('Arabic Dream')">
+            <span class="restaurant-icon">🌌</span>
+            <h3>Arabic Dream</h3>
+            <p>Pratos reconfortantes como Maqluba, Charutos e sucos imperiais frescos.</p>
+        </div>
+        <div class="restaurant-premium-box" id="rest-box-damasco" onclick="selecionarRestaurante('Oásis de Damasco')">
+            <span class="restaurant-icon">🌴</span>
+            <h3>Oásis de Damasco</h3>
+            <p>Iguarias rústicas de sêmola, Kibbeh Nayyeh e infusões herbáceas profundas.</p>
+        </div>
+        <div class="restaurant-premium-box" id="rest-box-caravana" onclick="selecionarRestaurante('Caravana do Oriente')">
+            <span class="restaurant-icon">🐪</span>
+            <h3>Caravana do Oriente</h3>
+            <p>Espetinhos suculentos na brasa, ensopados ricos e o tradicional leite de camela.</p>
+        </div>
+    </div>
+
+    <div id="container-cardapio-dinamico" style="display: none;">
+        <h3 class="section-title" id="titulo-restaurante-selecionado">Cardápio</h3>
+        <div class="menu-categories-nav">
+            <button class="category-btn active" id="cat-btn-salgados" onclick="filtrarCategoria('salgados')">Salgados</button>
+            <button class="category-btn" id="cat-btn-doces" onclick="filtrarCategoria('doces')">Doces</button>
+            <button class="category-btn" id="cat-btn-bebidas" onclick="filtrarCategoria('bebidas')">Bebidas</button>
+        </div>
+        <div id="grid-salgados" class="dishes-grid active"></div>
+        <div id="grid-doces" class="dishes-grid"></div>
+        <div id="grid-bebidas" class="dishes-grid"></div>
+    </div>
+</div>
+
+<div id="screen-cart" class="screen">
+    <h3 class="section-title">Minha Sacola</h3>
+    <div class="cart-wrapper">
+        <div id="cart-items-container">
+            <p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Sua sacola está vazia.</p>
+        </div>
+
+        <div class="coupon-box-wrapper">
+            <span style="font-size: 13px; font-weight: 700; color: var(--gold-royal);">🎫 Possui Cupom de Desconto?</span>
+            <div class="coupon-input-group">
+                <input type="text" id="input-cupom-codigo" placeholder="Digite seu cupom (Ex: SULTAN10)">
+                <button class="btn-gold-action" onclick="aplicarCupomSacola()">Validar</button>
+            </div>
+            <small id="msg-cupom-status" style="display:block; margin-top:5px; font-size:11px;"></small>
+        </div>
+
+        <div class="cart-totals">
+            <div class="total-line">
+                <span style="color: var(--text-muted);">Subtotal dos Pratos</span>
+                <span id="cart-subtotal">R$ 0,00</span>
+            </div>
+            <div class="total-line" id="linha-desconto-container" style="display: none; color: var(--danger);">
+                <span>Desconto Aplicado</span>
+                <span id="cart-desconto">- R$ 0,00</span>
+            </div>
+            <div class="total-line">
+                <span style="color: var(--text-muted);">Taxa de Entrega</span>
+                <span id="cart-taxa">R$ 7,00</span>
+            </div>
+            <div class="total-line" style="font-weight: 800; font-size: 18px; margin-top: 15px; color: var(--gold-royal);">
+                <span>Valor Total</span>
+                <span id="cart-total">R$ 7,00</span>
+            </div>
+        </div>
+        <button class="btn-luxury" style="margin-top: 25px;" onclick="finalizarPedidoCheckout()">Enviar Pedido à Cozinha</button>
+    </div>
+</div>
+
+<div id="screen-profile" class="screen">
+    <h3 class="section-title">Meu Perfil de Elite</h3>
+    <div class="profile-card">
+        <div class="input-group">
+            <label>Nome Completo</label>
+            <input type="text" id="p-nome">
+        </div>
+        <div class="input-group">
+            <label>E-mail Associado</label>
+            <input type="text" id="p-email">
+        </div>
+        <div class="input-group">
+            <label>Nova Senha de Acesso</label>
+            <input type="password" id="p-senha" placeholder="Digite para alterar a sua senha">
+        </div>
+        <div class="input-group">
+            <label>Telefone Cadastrado</label>
+            <input type="text" id="p-fone">
+        </div>
+        <div class="input-group">
+            <label>Bairro Definido em Joinville</label>
+            <input type="text" id="p-bairro" style="text-transform: capitalize;" disabled>
+        </div>
+        <button class="btn-luxury" style="margin-top: 15px;" onclick="salvarAlteracoesPerfil()">Salvar Modificações</button>
+    </div>
+</div>
+
+<script>
+    // INICIALIZAÇÃO RESILIENTE DO BANCO DE DADOS LOCAL E PERSISTÊNCIA
+    function garantirPerfilInicializado() {
+        let perfilSalvo = localStorage.getItem('usuario_premium_dados');
+        if (perfilSalvo) {
+            window.clienteObjeto = JSON.parse(perfilSalvo);
+        } else {
+            window.clienteObjeto = {
+                nome: "Sultão Convidado",
+                email: "sultao@elite.com",
+                telefone: "(47) 99999-9999",
+                bairro: "",
+                senha: "123"
+            };
+            localStorage.setItem('usuario_premium_dados', JSON.stringify(window.clienteObjeto));
+        }
+
+        // Sincroniza o Bairro selecionado na barra lateral caso já exista salvo
+        const selectBairroElement = document.getElementById('bairro');
+        if (selectBairroElement && window.clienteObjeto.bairro) {
+            selectBairroElement.value = window.clienteObjeto.bairro;
+        }
+        
+        // Sincroniza o topo da interface
+        const topUserLabel = document.getElementById('txt-usuario-logado-topo');
+        if(topUserLabel) topUserLabel.innerText = window.clienteObjeto.nome;
+    }
+
+    // Intercepta e aprimora o botão de Salvar Bairro da barra lateral
+    function acoplarBotaoSalvarBairro() {
+        const selectBairroElement = document.getElementById('bairro');
+        if(selectBairroElement) {
+            // Garante que a mudança do select atualize o escopo
+            selectBairroElement.addEventListener('change', function() {
+                if(!window.clienteObjeto) garantirPerfilInicializado();
+                window.clienteObjeto.bairro = selectBairroElement.value;
+                localStorage.setItem('usuario_premium_dados', JSON.stringify(window.clienteObjeto));
+            });
+        }
+
+        // Encontra o botão de salvar localização na barra e o padroniza para Dourado
+        const btns = document.querySelectorAll('button');
+        btns.forEach(btn => {
+            if(btn.innerText.toLowerCase().includes('localização') || btn.innerText.toLowerCase().includes('bairro')) {
+                btn.className = "btn-gold-action";
+                btn.style.width = "100%";
+                btn.style.marginTop = "10px";
+                btn.onclick = function() {
+                    if(selectBairroElement && selectBairroElement.value !== "") {
+                        if(!window.clienteObjeto) garantirPerfilInicializado();
+                        window.clienteObjeto.bairro = selectBairroElement.value;
+                        localStorage.setItem('usuario_premium_dados', JSON.stringify(window.clienteObjeto));
+                        alert("📌 Localização e Bairro memorizados com sucesso no seu Perfil!");
+                    } else {
+                        alert("🚨 Selecione um bairro válido antes de salvar.");
+                    }
+                };
+            }
+        });
+    }
+
+    // Executa no carregamento do script
+    garantirPerfilInicializado();
+    setTimeout(acoplarBotaoSalvarBairro, 500);
+
+    const bancoCardapios = {
+        "Rei do Beirute": {
+            salgados: [
+                { nome: "Kibe (Frito, Cru ou Assado)", img: "rei_do_beirute_kibe.jpg", desc: "Massa de carne moída com trigo para kibe, temperada com hortelã e especiarias.", preco: 18.00 },
+                { nome: "Esfiha Tradicional", img: "rei_do_beirute_esfiha.jpg", desc: "Massa leve recheada tradicionalmente com carne moída, queijo ou zatar.", preco: 12.00 },
+                { nome: "Falafel Imperial", img: "rei_do_beirute_falafel.jpg", desc: "Bolinhos fritos à base de grão-de-bico moído, alho e especiarias.", preco: 22.00 },
+                { nome: "Shawarma Clássico", img: "rei_do_beirute_shawarma.jpg", desc: "Lascas de carne ou frango assadas em espeto giratório, servidas no pão sírio.", preco: 32.00 },
+                { nome: "Homus Real", img: "rei_do_beirute_homus.jpg", desc: "Tradicional pasta de grão-de-bico com tahine, limão e alho.", preco: 19.00 }
+            ],
+            doces: [
+                { nome: "Baklava Premium", img: "rei_do_beirute_baklava.jpg", desc: "Massa folhada muito fina, intercalada com nozes ou pistache com calda.", preco: 16.00 },
+                { nome: "Knafeh (Kunafa)", img: "rei_do_beirute_knafeh.jpg", desc: "Sobremesa quente feita com massa de fios, recheada com queijo derretido.", preco: 24.00 },
+                { nome: "Maamoul de Tâmaras", img: "rei_do_beirute_maamoul.jpg", desc: "Biscoitos amanteigados recheados com tâmaras, nozes ou pistache.", preco: 14.00 },
+                { nome: "Halawi Tradicional", img: "rei_do_beirute_halawi.jpg", desc: "Doce denso e esfarelento feito à base de pasta de gergelim e açúcar.", preco: 15.00 },
+                { nome: "Malabie (Muhallebi)", img: "rei_do_beirute_malabie.jpg", desc: "Manjar branco de leite, perfumado com água de laranjeira ou rosas.", preco: 17.00 }
+            ],
+            bebidas: [
+                { nome: "Chá de Hortelã", img: "rei_do_beirute_cha.jpg", desc: "Chá preto bem doce, servido quente com folhas frescas de hortelã.", preco: 9.00 },
+                { nome: "Café Árabe (Qahwa)", img: "rei_do_beirute_cafe.jpg", desc: "Café claro não filtrado, fortemente fervido com cardamomo.", preco: 11.00 },
+                { nome: "Ayran (Laban)", img: "rei_do_beirute_ayran.jpg", desc: "Bebida salgada e refrescante feita com iogurte, água e sal.", preco: 10.00 },
+                { nome: "Limonana Frozen", img: "rei_do_beirute_limonana.jpg", desc: "Limonada congelada 'slushy', batida com gelo, limão e hortelã.", preco: 14.00 },
+                { nome: "Jallab Real", img: "rei_do_beirute_jallab.jpg", desc: "Bebida de melaço de alfarroba, tâmaras e água de rosas.", preco: 16.00 }
+            ]
+        },
+        "Aladdin & Cia": {
+            salgados: [
+                { nome: "Babaganoush Defumado", img: "aladdin_babaganoush.jpg", desc: "Pasta de berinjela defumada, misturada com tahine, alho e limão.", preco: 21.00 },
+                { nome: "Coalhada Seca (Labneh)", img: "aladdin_coalhada.jpg", desc: "Iogurte drenado até atingir a consistência de um queijo cremoso.", preco: 18.00 },
+                { nome: "Tabule Imperial", img: "aladdin_tabule.jpg", desc: "Salada refrescante de salsinha picada, trigo, tomate e hortelã.", preco: 19.50 },
+                { nome: "Fatouche Crocante", img: "aladdin_fatouche.jpg", desc: "Salada mista com rabanete, pepino, coberta com pão sírio torrado.", preco: 22.00 },
+                { nome: "Kafta Grelhada na Brasa", img: "aladdin_kafta.jpg", desc: "Carne moída temperada com salsa e cebola, moldada em espetos.", preco: 26.50 }
+            ],
+            doces: [
+                { nome: "Ataif (Qatayef)", img: "aladdin_ataif.jpg", desc: "Pequenas panquecas recheadas com nozes ou creme e calda doce.", preco: 18.50 },
+                { nome: "Basbousa (Namoura)", img: "aladdin_basbousa.jpg", desc: "Bolo úmido e denso de sêmola, embebido em calda de açúcar.", preco: 15.00 },
+                { nome: "Lokum (Delícia Turca)", img: "aladdin_lokum.jpg", desc: "Cubos de goma doce aromatizados com água de rosas e castanhas.", preco: 16.00 },
+                { nome: "Awamah (Lokma)", img: "aladdin_awamah.jpg", desc: "Pequenos bolinhos de massa frita mergulhados em calda doce.", preco: 13.50 },
+                { nome: "Umm Ali Imperial", img: "aladdin_umm_ali.jpg", desc: "O 'pudim de pão' árabe feito com massa folhada, leite e nozes.", preco: 25.00 }
+            ],
+            bebidas: [
+                { nome: "Arak (Leite de Leão)", img: "aladdin_arak.jpg", desc: "Bebida alcoólica destilada com sabor marcante de anis.", preco: 28.00 },
+                { nome: "Tamr Hindi", img: "aladdin_tamr_hindi.jpg", desc: "Refresco de tamarindo gelado com equilíbrio doce e azedo.", preco: 12.00 },
+                { nome: "Qamar al-Din", img: "aladdin_qamar.jpg", desc: "Suco denso e doce feito a partir de pasta de damasco desidratado.", preco: 15.00 },
+                { nome: "Sahlab Cremoso (Salep)", img: "aladdin_sahlab.jpg", desc: "Bebida quente e espessa feita com leite e farinha de orquídea.", preco: 17.00 },
+                { nome: "Karak Chai Imperial", img: "aladdin_karak.jpg", desc: "Chá preto forte fervido com leite evaporado e especiarias.", preco: 14.00 }
+            ]
+        },
+        "Arabic Dream": {
+            salgados: [
+                { nome: "Charuto Especial (Mahshi)", img: "arabic_dream_charuto.jpg", desc: "Folhas de uva ou de repolho recheadas com arroz e carne moída.", preco: 29.00 },
+                { nome: "Manakish de Zatar", img: "arabic_dream_manakish.jpg", desc: "Espécie de 'pizza árabe' coberta com zatar e azeite ou queijo.", preco: 18.00 },
+                { nome: "Mujaddara Tradicional", img: "arabic_dream_mujaddara.jpg", desc: "Prato reconfortante de arroz cozido com lentilhas e cebola frita.", preco: 24.00 },
+                { nome: "Arayes Crocantes", img: "arabic_dream_arayes.jpg", desc: "Pão sírio recheado com carne moída temperada e grelhado.", preco: 26.00 },
+                { nome: "Maqluba Real", img: "arabic_dream_maqluba.jpg", desc: "Prato de arroz, carne e vegetais, desenformado de cabeça para baixo.", preco: 45.00 }
+            ],
+            doces: [
+                { nome: "Mabrouma (Ninho de Pistache)", img: "arabic_dream_mabrouma.jpg", desc: "Fios de massa crocante em formato de ninho com muito pistache.", preco: 22.00 },
+                { nome: "Halawet el Jibn", img: "arabic_dream_halawet.jpg", desc: "Rolinhos de massa doce de queijo recheados com creme ashta.", preco: 21.00 },
+                { nome: "Sfouf de Açafrão", img: "arabic_dream_sfouf.jpg", desc: "Bolo leve feito com sêmola e açafrão-da-terra com pinhões.", preco: 14.50 },
+                { nome: "Znoud el Sit", img: "arabic_dream_znoud.jpg", desc: "Rolinhos de massa folhada fritos recheados com creme denso.", preco: 19.00 },
+                { nome: "Aish El Saraya", img: "arabic_dream_aish.jpg", desc: "Pão umedecido em caramelo com camada generosa de creme e pistache.", preco: 23.00 }
+            ],
+            bebidas: [
+                { nome: "Suco de Romã", img: "arabic_dream_roma.jpg", desc: "Suco fresco de romã espremido na hora, muito refrescante.", preco: 18.00 },
+                { nome: "Café Turco Tradicional", img: "arabic_dream_cafe.jpg", desc: "Café moído finamente, fervido na cezve com a borra no fundo.", preco: 12.50 },
+                { nome: "Karkadeh (Chá de Hibisco)", img: "arabic_dream_karkadeh.jpg", desc: "Chá de flores de hibisco. Pode ser bebido quente ou bem gelado.", preco: 10.00 },
+                { nome: "Sobia de Coco", img: "arabic_dream_sobia.jpg", desc: "Bebida levemente espessa feita de arroz moído, leite e coco.", preco: 13.00 },
+                { nome: "Khoshaf de Frutas Secas", img: "arabic_dream_khoshaf.jpg", desc: "Compota servida como bebida com frutas secas e nozes hidratadas.", preco: 16.50 }
+            ]
+        },
+        "Oásis de Damasco": {
+            salgados: [
+                { nome: "Kibbeh Nayyeh Especial", img: "oasis_damasco_kibbeh.jpg", desc: "Kibe cru tradicionalíssimo com carne magra fresca e trigo bulgur.", preco: 38.00 },
+                { nome: "Lahmacun Crocante", img: "oasis_damasco_lahmacun.jpg", desc: "Pão fino coberto com carne moída finamente temperada com pimentão.", preco: 21.00 },
+                { nome: "Ful Medames Rústico", img: "oasis_damasco_ful.jpg", desc: "Ensopado rústico de favas cozidas lentamente com alho e cominho.", preco: 23.00 },
+                { nome: "Batata Harra Picante", img: "oasis_damasco_batata.jpg", desc: "Cubos de batata frita refogados em azeite com coentro e pimenta.", preco: 19.00 },
+                { nome: "Mansaf Festivo", img: "oasis_damasco_mansaf.jpg", desc: "Cordeiro cozido em molho de iogurte seco com amêndoas torradas.", preco: 58.00 }
+            ],
+            doces: [
+                { nome: "Balah el Sham", img: "oasis_damasco_balah.jpg", desc: "Massa frita estriada mergulhada em calda fria, crocante por fora.", preco: 15.00 },
+                { nome: "Layali Lubnan", img: "oasis_damasco_layali.jpg", desc: "Pudim de sêmola denso coberto com creme e calda de flor de laranjeira.", preco: 24.50 },
+                { nome: "Qatayef Asafiri", img: "oasis_damasco_qatayef.jpg", desc: "Mini panquecas em cone recheadas com ashta e pistache.", preco: 22.00 },
+                { nome: "Meghli de Anis", img: "oasis_damasco_meghli.jpg", desc: "Pudim de arroz libanês aromatizado com anis, cominho e canela.", preco: 16.00 },
+                { nome: "Ghorayebah Amanteigado", img: "oasis_damasco_ghorayebah.jpg", desc: "Biscoitos amanteigados de ghee com uma amêndoa inteira no centro.", preco: 14.00 }
+            ],
+            bebidas: [
+                { nome: "Shai bil Meramiyeh", img: "oasis_damasco_shai.jpg", desc: "Chá preto tradicional fervido com folhas frescas de sálvia.", preco: 10.50 },
+                { nome: "Sharab el Toot", img: "oasis_damasco_sharab.jpg", desc: "Refresco vibrante feito de xarope denso de amoras silvestres.", preco: 13.00 },
+                { nome: "Mate Sírio Quente", img: "oasis_damasco_mate.jpg", desc: "Erva-mate consumida quente, servida na cuia tradicional.", preco: 11.00 },
+                { nome: "Suco de Melancia com Rosas", img: "oasis_damasco_melancia.jpg", desc: "Bebida refrescante de melancia com um toque de água de rosas.", preco: 14.00 },
+                { nome: "Yansoon (Chá de Anis)", img: "oasis_damasco_yansoon.jpg", desc: "Chá quente e calmante feito a partir de sementes de erva-doce.", preco: 9.50 }
+            ]
+        },
+        "Caravana do Oriente": {
+            salgados: [
+                { nome: "Shish Taouk na Brasa", img: "caravana_oriente_shish.jpg", desc: "Espetinhos suculentos de frango marinados em iogurte e alho.", preco: 31.00 },
+                { nome: "Kibbeh Labanieh Aveludado", img: "caravana_oriente_kibbeh.jpg", desc: "Bolinhos de kibe cozidos lentamente em caldo quente de iogurte.", preco: 36.00 },
+                { nome: "Maghmour Vegan", img: "caravana_oriente_maghmour.jpg", desc: "Ensopado vegano libanês de berinjela, grão-de-bico e tomate.", preco: 25.00 },
+                { nome: "Kousa Mahshi Recheada", img: "caravana_oriente_kousa.jpg", desc: "Abobrinhas inteiras recheadas com arroz, carne moída e temperos.", preco: 34.00 },
+                { nome: "Sayadieh Litorâneo", img: "caravana_oriente_sayadieh.jpg", desc: "Peixe branco sobre cama de arroz escuro super temperado.", preco: 49.00 }
+            ],
+            doces: [
+                { nome: "Faisaliyah Dourado", img: "caravana_oriente_faisaliyah.jpg", desc: "Triângulos de massa de fios recheados com nozes e calda doce.", preco: 21.50 },
+                { nome: "Zlabia em Flor", img: "caravana_oriente_zlabia.jpg", desc: "Massa frita em formatos irregulares com calda aromatizada espessa.", preco: 14.00 },
+                { nome: "Qara' Asali Gratinado", img: "caravana_oriente_qara.jpg", desc: "Purê de abóbora assada coberto com bechamel doce e castanhas.", preco: 23.00 },
+                { nome: "Makroudh de Sêmola", img: "caravana_oriente_makroudh.jpg", desc: "Biscoito de sêmola recheado com tâmaras e mergulhado em mel.", preco: 17.50 },
+                { nome: "Borma de Pistache", img: "caravana_oriente_borma.jpg", desc: "Cilindros de massa recheados generosamente com pistaches inteiros.", preco: 26.00 }
+            ],
+            bebidas: [
+                { nome: "Mazaher (Café Branco)", img: "caravana_oriente_mazaher.jpg", desc: "Bebida quente relaxante com mel e água de flor de laranjeira.", preco: 11.00 },
+                { nome: "Balah bil Laban Vitamina", img: "caravana_oriente_balah.jpg", desc: "Vitamina encorpada de tâmaras hidratadas batidas com leite.", preco: 15.00 },
+                { nome: "Sharab el Wared Perfumado", img: "caravana_oriente_sharab.jpg", desc: "Refresco doce feito de xarope de pétalas de rosas com gelo.", preco: 13.50 },
+                { nome: "Leite de Camela Tradicional", img: "caravana_oriente_camela.jpg", desc: "Bebida tradicional do Golfo, com sabor sutilmente mais salgado.", preco: 25.00 },
+                { nome: "Suco de Cenoura com Laranja", img: "caravana_oriente_suco.jpg", desc: "Mistura clássica e vibrante espremida na hora com muito frescor.", preco: 12.00 }
+            ]
+        }
+    };
+
+    let restauranteAtivo = "";
+    let sacolaItens = [];
+    let pratoEmCustomizacao = null;
+    let contadorQuantidadeModal = 1;
+    let descontoPorcentagemAtivo = 0;
+
+    function obterBairroSelecionado() {
+        if(!window.clienteObjeto) garantirPerfilInicializado();
+        
+        const selectBairroElement = document.getElementById('bairro');
+        if(selectBairroElement && selectBairroElement.value !== "") {
+            window.clienteObjeto.bairro = selectBairroElement.value;
+            localStorage.setItem('usuario_premium_dados', JSON.stringify(window.clienteObjeto));
+            return selectBairroElement.value;
+        }
+        
+        if(window.clienteObjeto && window.clienteObjeto.bairro) {
+            if(selectBairroElement) selectBairroElement.value = window.clienteObjeto.bairro;
+            return window.clienteObjeto.bairro;
+        }
+        return "";
+    }
+
+    function selecionarRestaurante(nomeRestaurante) {
+        restauranteAtivo = nomeRestaurante;
+        document.querySelectorAll('.restaurant-premium-box').forEach(box => box.classList.remove('selected'));
+        if(nomeRestaurante === "Rei do Beirute") document.getElementById('rest-box-rei').classList.add('selected');
+        if(nomeRestaurante === "Aladdin & Cia") document.getElementById('rest-box-aladdin').classList.add('selected');
+        if(nomeRestaurante === "Arabic Dream") document.getElementById('rest-box-dream').classList.add('selected');
+        if(nomeRestaurante === "Oásis de Damasco") document.getElementById('rest-box-damasco').classList.add('selected');
+        if(nomeRestaurante === "Caravana do Oriente") document.getElementById('rest-box-caravana').classList.add('selected');
+
+        document.getElementById('titulo-restaurante-selecionado').innerText = "Cardápio Imperial de " + nomeRestaurante;
+        renderizarGradePratos('salgados', 'grid-salgados');
+        renderizarGradePratos('doces', 'grid-doces');
+        renderizarGradePratos('bebidas', 'grid-bebidas');
+        document.getElementById('container-cardapio-dinamico').style.display = 'block';
+        filtrarCategoria('salgados');
+    }
+
+    function renderizarGradePratos(categoria, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        const pratos = bancoCardapios[restauranteAtivo][categoria];
+        pratos.forEach(prato => {
+            const card = document.createElement('div');
+            card.classList.add('dish-card');
+            card.setAttribute('onclick', `abrirMiniTelaExtra('${prato.nome}', '${prato.img}', '${prato.desc}', ${prato.preco})`);
+            card.innerHTML = `
+                <div class="dish-image-container">
+                    <img src="/static/images/${prato.img}" alt="${prato.nome}" onerror="this.src='https://placehold.co/400x250/140c0d/dfba53?text=${prato.nome}';">
+                </div>
+                <div class="dish-content-padding">
+                    <div class="dish-info">
+                        <h4>${prato.nome}</h4>
+                        <p>${prato.desc}</p>
+                    </div>
+                    <div class="dish-footer">
+                        <span class="dish-price">R$ ${prato.preco.toFixed(2).replace('.',',')}</span>
+                        <button class="add-to-cart-btn" style="pointer-events:none;">+ Customizar</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function filtrarCategoria(cat) {
+        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.dishes-grid').forEach(grid => grid.classList.remove('active'));
+        if(cat === 'salgados') {
+            document.getElementById('cat-btn-salgados').classList.add('active');
+            document.getElementById('grid-salgados').classList.add('active');
+        } else if(cat === 'doces') {
+            document.getElementById('cat-btn-doces').classList.add('active');
+            document.getElementById('grid-doces').classList.add('active');
+        } else {
+            document.getElementById('cat-btn-bebidas').classList.add('active');
+            document.getElementById('grid-bebidas').classList.add('active');
+        }
+    }
+
+    function abrirMiniTelaExtra(nome, img, desc, preco) {
+        event.stopPropagation();
+        
+        const bairroValidado = obterBairroSelecionado();
+        if(!bairroValidado || bairroValidado === "") {
+            toggleMenu(true);
+            alert("🚨 Selecione o seu Bairro no menu lateral esquerdo e clique em Salvar para liberar os pedidos.");
+            return;
+        }
+
+        contadorQuantidadeModal = 1;
+        document.getElementById('modal-item-quantidade').innerText = contadorQuantidadeModal;
+        pratoEmCustomizacao = { nome, preco, basePreco: preco };
+
+        document.getElementById('modal-item-titulo').innerText = nome;
+        document.getElementById('modal-item-desc').innerText = desc;
+        document.getElementById('modal-item-img').src = "/static/images/" + img;
+
+        document.querySelectorAll('.chk-extra').forEach(chk => {
+            chk.checked = false;
+            chk.onclick = recalcularPrecoModal;
+        });
+
+        recalcularPrecoModal();
+        document.getElementById('extra-ingredients-modal').style.display = 'flex';
+
+        document.getElementById('btn-modal-confirmar-adicionar').onclick = function() {
+            adicionarItemCustomizadoSacola();
+        };
+    }
+
+    function alterarContagemModal(val) {
+        contadorQuantidadeModal += val;
+        if(contadorQuantidadeModal < 1) contadorQuantidadeModal = 1;
+        document.getElementById('modal-item-quantidade').innerText = contadorQuantidadeModal;
+        recalcularPrecoModal();
+    }
+
+    function fecharMiniTelaExtra() {
+        document.getElementById('extra-ingredients-modal').style.display = 'none';
+        pratoEmCustomizacao = null;
+    }
+
+    function recalcularPrecoModal() {
+        if(!pratoEmCustomizacao) return;
+        let precoUnitario = pratoEmCustomizacao.basePreco;
+        document.querySelectorAll('.chk-extra:checked').forEach(chk => {
+            precoUnitario += parseFloat(chk.getAttribute('data-preco'));
+        });
+        
+        let precoFinalTotal = precoUnitario * contadorQuantidadeModal;
+        document.getElementById('modal-item-preco-display').innerText = "R$ " + precoFinalTotal.toFixed(2).replace('.', ',');
+    }
+
+    function adicionarItemCustomizadoSacola() {
+        if(!pratoEmCustomizacao) return;
+        let extras = [];
+        document.querySelectorAll('.chk-extra:checked').forEach(chk => {
+            extras.push(chk.value);
+        });
+
+        let precoUnitarioCalculado = pratoEmCustomizacao.basePreco;
+        document.querySelectorAll('.chk-extra:checked').forEach(chk => {
+            precoUnitarioCalculado += parseFloat(chk.getAttribute('data-preco'));
+        });
+
+        const sufixo = extras.length > 0 ? " [" + extras.join(', ') + "]" : "";
+        const nomeFinal = pratoEmCustomizacao.nome + sufixo;
+
+        const itemExistente = sacolaItens.find(i => i.nome === nomeFinal && i.restaurante === restauranteAtivo);
+        if(itemExistente) {
+            itemExistente.qtd += contadorQuantidadeModal;
+        } else {
+            sacolaItens.push({
+                restaurante: restauranteAtivo,
+                nome: nomeFinal,
+                preco: precoUnitarioCalculado,
+                qtd: contadorQuantidadeModal
+            });
+        }
+
+        atualizarContadoresSacola();
+        fecharMiniTelaExtra();
+    }
+
+    function aplicarCupomSacola() {
+        const codigo = document.getElementById('input-cupom-codigo').value.trim().toUpperCase();
+        const statusMsg = document.getElementById('msg-cupom-status');
+
+        if(codigo === "SULTAN10" || codigo === "ARABE10") {
+            descontoPorcentagemAtivo = 10;
+            statusMsg.innerText = "✓ Cupom SULTAN10 ativado! 10% de desconto nos pratos.";
+            statusMsg.style.color = "var(--gold-royal)";
+        } else if(codigo === "HABIBI20") {
+            descontoPorcentagemAtivo = 20;
+            statusMsg.innerText = "✓ Cupom HABIBI20 ativado! 20% de desconto nos pratos.";
+            statusMsg.style.color = "var(--gold-royal)";
+        } else {
+            descontoPorcentagemAtivo = 0;
+            statusMsg.innerText = "✕ Cupom inválido ou expirado.";
+            statusMsg.style.color = "var(--danger)";
+        }
+        atualizarContadoresSacola();
+    }
+
+    function atualizarContadoresSacola() {
+        const totalItens = sacolaItens.reduce((acc, curr) => acc + curr.qtd, 0);
+        document.getElementById('global-cart-count').innerText = totalItens;
+        const container = document.getElementById('cart-items-container');
+
+        if(sacolaItens.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px 0;">Sua sacola está vazia.</p>`;
+            document.getElementById('cart-subtotal').innerText = "R$ 0,00";
+            document.getElementById('cart-total').innerText = "R$ 7,00";
+            document.getElementById('linha-desconto-container').style.display = 'none';
+            return;
+        }
+
+        container.innerHTML = "";
+        let subtotal = 0;
+        sacolaItens.forEach((item, index) => {
+            subtotal += (item.preco * item.qtd);
+            const row = document.createElement('div');
+            row.classList.add('cart-item-row');
+            row.innerHTML = `
+                <div>
+                    <span style="font-weight: 700; color: var(--text-pure); font-size:13px;">${item.nome}</span><br>
+                    <small style="color: var(--gold-royal); font-size:11px;">${item.restaurante}</small>
+                </div>
+                <div style="display:flex; gap: 12px; align-items:center;">
+                    <span style="color: var(--text-muted); font-size:12.5px;">${item.qtd}x</span>
+                    <span style="font-weight:600; min-width:65px; text-align:right; font-size:13px;">R$ ${(item.preco * item.qtd).toFixed(2).replace('.',',')}</span>
+                    <button onclick="removerItemSacola(${index})" style="background:none; border:none; color:var(--danger); cursor:pointer;">✕</button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+
+        let valorDesconto = (subtotal * descontoPorcentagemAtivo) / 100;
+        document.getElementById('cart-subtotal').innerText = "R$ " + subtotal.toFixed(2).replace('.',',');
+
+        if(valorDesconto > 0) {
+            document.getElementById('cart-desconto').innerText = "- R$ " + valorDesconto.toFixed(2).replace('.',',');
+            document.getElementById('linha-desconto-container').style.display = 'flex';
+        } else {
+            document.getElementById('linha-desconto-container').style.display = 'none';
+        }
+
+        let valorFinalTotal = (subtotal - valorDesconto) + 7.00;
+        document.getElementById('cart-total').innerText = "R$ " + valorFinalTotal.toFixed(2).replace('.',',');
+    }
+
+    function removerItemSacola(index) {
+        sacolaItens.splice(index, 1);
+        atualizarContadoresSacola();
+    }
+
+    function preencherCamposPerfil() {
+        const bairroValidado = obterBairroSelecionado();
+        if(window.clienteObjeto) {
+            document.getElementById('p-nome').value = window.clienteObjeto.nome || "";
+            document.getElementById('p-email').value = window.clienteObjeto.email || "";
+            document.getElementById('p-fone').value = window.clienteObjeto.telefone || "";
+            document.getElementById('p-bairro').value = bairroValidado || "Não Definido";
+            document.getElementById('p-senha').value = window.clienteObjeto.senha || "123";
+        }
+    }
+
+    function salvarAlteracoesPerfil() {
+        if(!window.clienteObjeto) garantirPerfilInicializado();
+        
+        const novoNome = document.getElementById('p-nome').value.trim();
+        const novoEmail = document.getElementById('p-email').value.trim();
+        const novoFone = document.getElementById('p-fone').value.trim();
+        const novaSenha = document.getElementById('p-senha').value.trim();
+
+        if(!novoNome || !novoEmail || !novaSenha) {
+            alert("Campos Nome, E-mail e Senha são obrigatórios.");
+            return;
+        }
+
+        window.clienteObjeto.nome = novoNome;
+        window.clienteObjeto.email = novoEmail;
+        window.clienteObjeto.telefone = novoFone;
+        window.clienteObjeto.senha = novaSenha;
+
+        // Salva persistentemente no LocalStorage
+        localStorage.setItem('usuario_premium_dados', JSON.stringify(window.clienteObjeto));
+
+        const topUserLabel = document.getElementById('txt-usuario-logado-topo');
+        if(topUserLabel) topUserLabel.innerText = novoNome;
+
+        alert("✨ Perfil Atualizado e Salvo com Sucesso de forma permanente!");
+    }
+
+    function finalizarPedidoCheckout() {
+        if(sacolaItens.length === 0) {
+            alert("Sua sacola de pedidos está vazia.");
+            return;
+        }
+        
+        const bairroValidado = obterBairroSelecionado();
+        if(!bairroValidado || bairroValidado === "") {
+            alert("Por favor, escolha e salve o seu Bairro de Entrega no menu lateral para prosseguir.");
+            return;
+        }
+        
+        alert("🎉 Pedido Enviado à Cozinha Real! Direcionando para o monitoramento...");
+        sacolaItens = [];
+        atualizarContadoresSacola();
+        switchScreen('status');
+    }
+
+    document.addEventListener('click', function() {
+        if(document.getElementById('screen-profile').classList.contains('active')) {
+            preencherCamposPerfil();
+        }
+    });
+</script>
+{% endblock %}
